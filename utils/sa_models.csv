@@ -1,0 +1,4 @@
+model_name,model_hash,model_url
+sam_vit_h_4b8939.pth,ecba83514e140b334f6a32e9b377c07beecf6a9ec7b3024cb29e691625d64610,https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth 
+sam_vit_l_0b3195.pth,5d6117050cdadba264772eb8c0362c5626999bcaaeea706f47feae85e612f360,https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+sam_vit_b_01ec64.pth,c197c92b5ed96f3623e0fb3ee254bfadb75de6e02aae1c26abd82534de5737b4,https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
