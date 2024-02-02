@@ -47,6 +47,8 @@ def main():
         # This is very very slow on a 2080Ti with 12GB of VRAM
         # Not as bad on a 4500 with 16GB of VRAM
         masks = mask_generator.generate(image_1)
+        with open(image_1_masks_pickle, "wb") as f:
+            pickle.dump(masks, f)
 
 
 if __name__ == "__main__":
