@@ -50,6 +50,12 @@ def main():
         with open(image_1_masks_pickle, "wb") as f:
             pickle.dump(masks, f)
 
+    # bbox is XYWH format
+    x1 = masks[0]["bbox"][0]
+    y1 = masks[0]["bbox"][1]
+    x2 = x1 + masks[0]["bbox"][2]
+    y2 = y1 + masks[0]["bbox"][3]
+
 
 if __name__ == "__main__":
     main()
