@@ -2,6 +2,7 @@ import pickle
 from pathlib import Path
 
 import cv2
+import joblib
 import numpy as np
 import pillow_heif
 import torch
@@ -15,7 +16,7 @@ def main():
     heic_test_image_2 = Path("../data/sample_data/IMG_0118.HEIC")
     png_test_image_1 = Path("../data/sample_data/IMG_0119.PNG")
     png_test_image_2 = Path("../data/sample_data/IMG_0118.PNG")
-    image_1_masks_pickle = Path("./masks_img_0119_heic.pkl")
+    image_1_masks_joblib = Path("./masks_img_0119_heic.lzma")
 
     # 8/10/12 bit HEIF to 8/16 bit PNG using OpenCV
     heif_file_1 = pillow_heif.open_heif(
@@ -40,15 +41,15 @@ def main():
     sam_model.to(device=device)
     mask_generator = SamAutomaticMaskGenerator(sam_model)
 
-    if image_1_masks_pickle.exists():
-        with open(image_1_masks_pickle, "rb") as f:
-            masks = pickle.load(f)
+    if image_1_masks_joblib.exists():
+        joblib.load(image_1_masks_joblib)
     else:
         # This is very very slow on a 2080Ti with 12GB of VRAM
         # Not as bad on a 4500 with 16GB of VRAM
         masks = mask_generator.generate(image_1)
-        with open(image_1_masks_pickle, "wb") as f:
-            pickle.dump(masks, f)
+        joblib.dump(
+            masks, image_1_masks_joblib, compress=3, protocol=pickle.HIGHEST_PROTOCOL
+        )
 
     # bbox is XYWH format
     x1 = masks[0]["bbox"][0]
