@@ -16,15 +16,20 @@ def main():
     heic_test_image_2 = Path("../data/sample_data/IMG_0118.HEIC")
     png_test_image_1 = Path("../data/sample_data/IMG_0119.PNG")
     png_test_image_2 = Path("../data/sample_data/IMG_0118.PNG")
-    image_1_masks_joblib = Path("./masks_img_0119_heic.lzma")
+    image_1_masks_joblib = Path("./masks_img_0119_heic_2.lzma")
 
     # 8/10/12 bit HEIF to 8/16 bit PNG using OpenCV
     heif_file_1 = pillow_heif.open_heif(
         heic_test_image_1, convert_hdr_to_8bit=False, bgr_mode=True
     )
     image_1 = np.asarray(heif_file_1)
-    if not png_test_image_1.exists():
-        cv2.imwrite(str(png_test_image_1), image_1)
+  
+
+    original_height, original_width = image_1.shape[:2]
+    new_height = int(original_height * 0.5)
+    new_width = int(original_width * 0.5)
+    image_1 = cv2.resize(image_1, (new_width, new_height), interpolation=cv2.INTER_AREA)
+    cv2.imwrite(str(png_test_image_1), image_1)
 
     # 8/10/12 bit HEIF to 8/16 bit PNG using OpenCV
     heif_file_2 = pillow_heif.open_heif(
@@ -39,7 +44,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     sam_model = sam_model_registry[model_type](sam_checkpoint)
     sam_model.to(device=device)
-    mask_generator = SamAutomaticMaskGenerator(sam_model)
+    mask_generator = SamAutomaticMaskGenerator(model=sam_model, crop_overlap_ratio=0.01)
 
     if image_1_masks_joblib.exists():
         joblib.load(image_1_masks_joblib)
