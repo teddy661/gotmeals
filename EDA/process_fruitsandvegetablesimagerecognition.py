@@ -65,6 +65,12 @@ def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def main():
+    '''
+    This function reads the images from the FruitsAndVegetablesImageRecognitionDataset 
+    WARNING WARNING WARNING: There are images in this dataset with Transparancy which need to be 
+    converted to RGBA format, this is not done here. When utilizing this data. We need to fix this 
+    issue
+    '''
     if not CLASSIFICATION_ROOT.exists():
         logging.error(f"Directory {CLASSIFICATION_ROOT} does not exist.")
     TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath(
