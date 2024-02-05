@@ -23,7 +23,6 @@ def main():
         heic_test_image_1, convert_hdr_to_8bit=False, bgr_mode=True
     )
     image_1 = np.asarray(heif_file_1)
-  
 
     original_height, original_width = image_1.shape[:2]
     new_height = int(original_height * 0.5)
@@ -44,8 +43,15 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     sam_model = sam_model_registry[model_type](sam_checkpoint)
     sam_model.to(device=device)
-    mask_generator = SamAutomaticMaskGenerator(model=sam_model, crop_overlap_ratio=0.01)
-
+    mask_generator = SamAutomaticMaskGenerator(
+        model=sam_model,
+        points_per_side=200,
+        pred_iou_thresh=0.86,
+        stability_score_thresh=0.92,
+        crop_n_layers=0,
+        crop_n_points_downscale_factor=2,
+        min_mask_region_area=50,  # Requires open-cv to run post-processing
+    )
     if image_1_masks_joblib.exists():
         joblib.load(image_1_masks_joblib)
     else:
@@ -61,7 +67,7 @@ def main():
     y1 = masks[0]["bbox"][1]
     x2 = x1 + masks[0]["bbox"][2]
     y2 = y1 + masks[0]["bbox"][3]
-
+    print(f"Number of masks:\t{len(masks)}")
 
 if __name__ == "__main__":
     main()
