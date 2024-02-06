@@ -24,10 +24,10 @@ def main():
     )
     image_1 = np.asarray(heif_file_1)
 
-    original_height, original_width = image_1.shape[:2]
-    new_height = int(original_height * 0.5)
-    new_width = int(original_width * 0.5)
-    image_1 = cv2.resize(image_1, (new_width, new_height), interpolation=cv2.INTER_AREA)
+    #original_height, original_width = image_1.shape[:2]
+    #new_height = int(original_height * 0.5)
+    #new_width = int(original_width * 0.5)
+    #image_1 = cv2.resize(image_1, (new_width, new_height), interpolation=cv2.INTER_AREA)
     cv2.imwrite(str(png_test_image_1), image_1)
 
     # 8/10/12 bit HEIF to 8/16 bit PNG using OpenCV
@@ -35,8 +35,7 @@ def main():
         heic_test_image_2, convert_hdr_to_8bit=False, bgr_mode=True
     )
     image_2 = np.asarray(heif_file_2)
-    if not png_test_image_2.exists():
-        cv2.imwrite(str(png_test_image_2), image_2)
+    cv2.imwrite(str(png_test_image_2), image_2)
 
     sam_checkpoint = SAM_MODEL_DIR.joinpath("sam_vit_h_4b8939.pth")
     model_type = "vit_h"
