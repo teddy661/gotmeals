@@ -58,7 +58,7 @@ def main():
     ## convert all ingredients to lower case and remove leading and trailing spaces for NER
     ## do not do this conversion for ingredients column
     ## also add a column for the length of the list
-    for col_name in ["ingredients", "NER"]:
+    for col_name in ["NER", "directions", "ingredients"]:
         if col_name == "NER":
             logging.info(f"Fixing Strings:\t{col_name}")
             rnlg_df = rnlg_df.with_columns(
