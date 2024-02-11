@@ -30,7 +30,6 @@ def parallelize_dataframe(
     func_list = list(itertools.repeat(func, len(df_split)))
     pool_args = list(zip(df_split, func_list))
     pool = mp.Pool(n_cores)
-    del df
     new_df = pl.concat(pool.map(process_chunk, pool_args))
     pool.close()
     pool.join()
