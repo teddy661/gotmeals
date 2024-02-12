@@ -9,7 +9,7 @@ import polars as pl
 import psutil
 from platformdirs import user_documents_dir
 
-from utils import parallelize_dataframe
+from utils import ProjectConfig, parallelize_dataframe
 
 
 def clean_text(text: str) -> str:
@@ -20,20 +20,11 @@ def clean_text(text: str) -> str:
 
 
 def main():
-    # Setup the directories
-    documents_dir = Path(user_documents_dir())
-    if platform.system() == "Windows":
-        class_root_dir = documents_dir.joinpath("01-Berkeley/210")
-        project_root_dir = class_root_dir.joinpath("gotmeals")
-        data_root_dir = class_root_dir.joinpath("data")
-    elif platform.system() == "Linux":
-        class_root_dir = Path("/tf/notebooks")
-        project_root_dir = class_root_dir.joinpath("gotmeals")
-        data_root_dir = class_root_dir.joinpath("data")
+    pc = ProjectConfig()
 
-    rnlg_data_dir = data_root_dir.joinpath("RecipeDatabase")
+    rnlg_data_dir = pc.data_root_dir.joinpath("RecipeDatabase")
     rnlg_csv_file = rnlg_data_dir.joinpath("RecipeNLG_dataset.csv")
-    rnlg_parquet_file = rnlg_data_dir.joinpath("RecipeNLG_dataset.parquet")
+    rnlg_parquet_file = pc.data_root_dir.joinpath("RecipeNLG_dataset.parquet")
     # Load the RecipeNLG dataset
     rnlg_df = pl.read_csv(rnlg_csv_file)
 
