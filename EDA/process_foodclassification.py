@@ -2,7 +2,6 @@ import argparse
 import gc
 import logging
 import multiprocessing as mp
-import platform
 import sys
 from datetime import datetime
 from io import BytesIO
@@ -14,25 +13,12 @@ import numpy as np
 import polars as pl
 import psutil
 from PIL import Image
-from platformdirs import user_documents_dir
 
-from utils import convert_numpy_to_bytesio, parallelize_dataframe
+from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
 
-environment = platform.system()
-# Setup the directories
-documents_dir = Path(user_documents_dir())
-if platform.system() == "Windows":
-    class_root_dir = documents_dir.joinpath("01-Berkeley/210")
-    project_root_dir = class_root_dir.joinpath("gotmeals")
-    data_root_dir = class_root_dir.joinpath("data")
-elif platform.system() == "Linux":
-    class_root_dir = Path("/tf/notebooks")
-    project_root_dir = class_root_dir.joinpath("gotmeals")
-    data_root_dir = class_root_dir.joinpath("data")
+pc = ProjectConfig()
 
-
-DATA_ROOT = class_root_dir.joinpath("data")
-CLASSIFICATION_ROOT = DATA_ROOT.joinpath("FoodClassification")
+CLASSIFICATION_ROOT = pc.data_root_dir.joinpath("FoodClassification")
 
 
 def update_path(path: Path, root_dir: Path) -> str:
@@ -85,7 +71,9 @@ def main():
         exit(1)
     TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath("train_images/train_images")
 
-    num_cpus = 8
+    num_cpus = psutil.cpu_count(logical=False)
+    if num_cpus > 8:
+        num_cpus = 8
 
     df = pl.read_csv(CLASSIFICATION_ROOT.joinpath("train_img.csv"))
     df = df.with_columns(
@@ -96,7 +84,9 @@ def main():
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
     df = df.rename({"ClassName": "ClassId"})
     print(df.head())
-    df.write_parquet("foodclassification.parquet", compression="snappy")
+    df.write_parquet(
+        pc.data_root_dir.joinpath("FoodClassification.parquet"), compression="snappy"
+    )
 
 
 if __name__ == "__main__":

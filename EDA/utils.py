@@ -1,11 +1,14 @@
 import itertools
 import multiprocessing as mp
 import os
+import platform
 from io import BytesIO
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
 import polars as pl
+from platformdirs import user_documents_dir
 
 
 def parallelize_dataframe(
@@ -53,3 +56,17 @@ def convert_numpy_to_bytesio(image: np.array) -> bytes:
     np.savez_compressed(mem_file, image=image)
     # np.save(mem_file, image)
     return mem_file.getvalue()
+
+
+class ProjectConfig:
+    def __init__(self):
+        self.system = platform.system()
+        self.user_documents_dir = Path(user_documents_dir())
+        if platform.system() == "Windows":
+            self.class_root_dir = self.user_documents_dir.joinpath("01-Berkeley/210")
+            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
+            self.data_root_dir = self.class_root_dir.joinpath("data")
+        elif platform.system() == "Linux":
+            self.class_root_dir = Path("/tf/notebooks")
+            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
+            self.data_root_dir = self.class_root_dir.joinpath("data")
