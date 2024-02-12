@@ -2,6 +2,7 @@ import argparse
 import gc
 import logging
 import multiprocessing as mp
+import platform
 import sys
 from datetime import datetime
 from io import BytesIO
@@ -13,10 +14,24 @@ import numpy as np
 import polars as pl
 import psutil
 from PIL import Image
+from platformdirs import user_documents_dir
 
 from utils import convert_numpy_to_bytesio, parallelize_dataframe
 
-DATA_ROOT = Path("C:/Users/teddy/Documents/01-Berkeley/210/data")
+environment = platform.system()
+# Setup the directories
+documents_dir = Path(user_documents_dir())
+if platform.system() == "Windows":
+    class_root_dir = documents_dir.joinpath("01-Berkeley/210")
+    project_root_dir = class_root_dir.joinpath("gotmeals")
+    data_root_dir = class_root_dir.joinpath("data")
+elif platform.system() == "Linux":
+    class_root_dir = Path("/tf/notebooks")
+    project_root_dir = class_root_dir.joinpath("gotmeals")
+    data_root_dir = class_root_dir.joinpath("data")
+
+
+DATA_ROOT = class_root_dir.joinpath("data")
 CLASSIFICATION_ROOT = DATA_ROOT.joinpath("FruitsAndVegetablesImageRecognitionDataset")
 
 
@@ -65,17 +80,15 @@ def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def main():
-    '''
-    This function reads the images from the FruitsAndVegetablesImageRecognitionDataset 
-    WARNING WARNING WARNING: There are images in this dataset with Transparancy which need to be 
-    converted to RGBA format, this is not done here. When utilizing this data. We need to fix this 
+    """
+    This function reads the images from the FruitsAndVegetablesImageRecognitionDataset
+    WARNING WARNING WARNING: There are images in this dataset with Transparancy which need to be
+    converted to RGBA format, this is not done here. When utilizing this data. We need to fix this
     issue
-    '''
+    """
     if not CLASSIFICATION_ROOT.exists():
         logging.error(f"Directory {CLASSIFICATION_ROOT} does not exist.")
-    TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath(
-        "train"
-    )
+    TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath("train")
 
     num_cpus = 8
 
@@ -92,7 +105,9 @@ def main():
     df = pl.DataFrame({"ClassId": ClassId, "ImageId": ImageId, "Image_Path": ImagPath})
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
     print(df.head())
-    df.write_parquet("FruitsAndVegetablesImageRecognitionDataset.parquet", compression="snappy")
+    df.write_parquet(
+        "FruitsAndVegetablesImageRecognitionDataset.parquet", compression="snappy"
+    )
 
 
 if __name__ == "__main__":

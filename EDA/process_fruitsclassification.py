@@ -2,6 +2,7 @@ import argparse
 import gc
 import logging
 import multiprocessing as mp
+import platform
 import sys
 from datetime import datetime
 from io import BytesIO
@@ -13,10 +14,24 @@ import numpy as np
 import polars as pl
 import psutil
 from PIL import Image
+from platformdirs import user_documents_dir
 
 from utils import convert_numpy_to_bytesio, parallelize_dataframe
 
-DATA_ROOT = Path("C:/Users/teddy/Documents/01-Berkeley/210/data")
+environment = platform.system()
+# Setup the directories
+documents_dir = Path(user_documents_dir())
+if platform.system() == "Windows":
+    class_root_dir = documents_dir.joinpath("01-Berkeley/210")
+    project_root_dir = class_root_dir.joinpath("gotmeals")
+    data_root_dir = class_root_dir.joinpath("data")
+elif platform.system() == "Linux":
+    class_root_dir = Path("/tf/notebooks")
+    project_root_dir = class_root_dir.joinpath("gotmeals")
+    data_root_dir = class_root_dir.joinpath("data")
+
+
+DATA_ROOT = class_root_dir.joinpath("data")
 CLASSIFICATION_ROOT = DATA_ROOT.joinpath("FruitsClassification/Fruits Classification")
 
 
