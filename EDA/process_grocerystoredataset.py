@@ -69,7 +69,7 @@ def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse foodclassification dataset")
+    parser = argparse.ArgumentParser(description="Parse GroceryStoreDataset dataset")
     parser.add_argument(
         "-f",
         dest="force",

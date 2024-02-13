@@ -75,7 +75,7 @@ def main():
     converted to RGBA format, this is not done here. When utilizing this data. We need to fix this
     issue
     """
-    parser = argparse.ArgumentParser(description="Parse foodclassification dataset")
+    parser = argparse.ArgumentParser(description="Parse FruitsAndVegetablesImageRecognitionDataset dataset")
     parser.add_argument(
         "-f",
         dest="force",
