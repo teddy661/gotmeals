@@ -79,7 +79,9 @@ def main():
     if not CLASSIFICATION_ROOT.exists():
         logging.error(f"Directory {CLASSIFICATION_ROOT} does not exist.")
         exit(1)
-    TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath("train_images/train_images")
+    TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath(
+        "fruits-360-original-size/fruits-360-original-size/Training"
+    )
 
     target_parquet_file = pc.data_root_dir.joinpath("Fruits-360.parquet")
     if target_parquet_file.exists() and not args.force:
