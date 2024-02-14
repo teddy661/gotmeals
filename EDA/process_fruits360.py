@@ -27,8 +27,17 @@ def update_path(path: Path, root_dir: Path) -> str:
 
 
 def read_image(image_path: Path) -> tuple:
+    image = Image.open(image_path)
+    if image.format == "PNG":
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+        else:
+            image = image.convert("RGB")
+    else:
+        image = image.convert("RGB")
+
     image_data = (
-        np.asarray(Image.open(image_path).convert("RGB"), dtype=np.float32) / 255.0
+        np.asarray(image, dtype=np.float32) / 255.0
     )
     image_height = image_data.shape[0]
     image_width = image_data.shape[1]
