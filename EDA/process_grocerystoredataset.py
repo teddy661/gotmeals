@@ -29,9 +29,16 @@ def update_path(path: Path, root_dir: Path) -> str:
 
 
 def read_image(image_path: Path) -> tuple:
-    image_data = (
-        np.asarray(Image.open(image_path).convert("RGB"), dtype=np.float32) / 255.0
-    )
+    image = Image.open(image_path)
+    if image.format == "PNG":
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+        else:
+            image = image.convert("RGB")
+    else:
+        image = image.convert("RGB")
+
+    image_data = np.asarray(image, dtype=np.float32) / 255.0
     image_height = image_data.shape[0]
     image_width = image_data.shape[1]
     image_resolution = image_height * image_width
@@ -102,6 +109,11 @@ def main():
             "column_3": "Coarse Class ID (int)",
         }
     )
+    train_df = train_df.select(pl.all().str.strip_chars())
+    train_df = train_df.select(
+        pl.col("Image_Path"), pl.all().exclude("Image_Path").cast(pl.Int64)
+    )
+
     classes_df = pl.read_csv(CLASSIFICATION_ROOT.joinpath("classes.csv"))
     df = train_df.join(classes_df, on="Class ID (int)")
     df = df.drop("Coarse Class ID (int)_right")
