@@ -35,9 +35,7 @@ def read_image(image_path: Path) -> tuple:
     else:
         image = image.convert("RGB")
 
-    image_data = (
-        np.asarray(image, dtype=np.float32) / 255.0
-    )
+    image_data = np.asarray(image, dtype=np.float32) / 255.0
     image_height = image_data.shape[0]
     image_width = image_data.shape[1]
     image_resolution = image_height * image_width
@@ -108,8 +106,17 @@ def main():
     )
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
     df = df.rename({"ClassName": "ClassId"})
+    df = df.select(
+        pl.col("ClassId"),
+        pl.col("ImageId"),
+        pl.col("Image_Path"),
+        pl.col("Width"),
+        pl.col("Height"),
+        pl.col("Resolution"),
+        pl.col("Image_Data"),
+    )
     print(df.head())
-    df.write_parquet(target_parquet_file, compression="snappy")
+    df.write_parquet(target_parquet_file, compression="lz4", compression_level=3)
 
 
 if __name__ == "__main__":

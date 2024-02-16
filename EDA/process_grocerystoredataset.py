@@ -123,8 +123,19 @@ def main():
         .alias("Image_Path")
     )
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
+    df = df.rename({"Coarse Class Name (str)": "ClassId"})
+    df = df.rename({'Iconic Image Path (str)': "ImageId"})
+    df = df.select(
+        pl.col("ClassId"),
+        pl.col("ImageId"),
+        pl.col("Image_Path"),
+        pl.col("Width"),
+        pl.col("Height"),
+        pl.col("Resolution"),
+        pl.col("Image_Data"),
+    )
     print(df.head())
-    df.write_parquet(target_parquet_file, compression="snappy")
+    df.write_parquet(target_parquet_file, compression="lz4", compression_level=3)
 
 
 if __name__ == "__main__":
