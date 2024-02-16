@@ -1,0 +1,68 @@
+In [20]: unique_counts.sort(by="ClassId", descending=False)
+Out[20]:
+shape: (59, 2)
+┌───────────────┬───────┐
+│ ClassId       ┆ count │
+│ ---           ┆ ---   │
+│ str           ┆ u32   │
+╞═══════════════╪═══════╡
+│ almonds       ┆ 69    │
+│ apple         ┆ 259   │
+│ avocado       ┆ 88    │
+│ banana        ┆ 256   │
+│ beer          ┆ 80    │
+│ beetroot      ┆ 88    │
+│ bell pepper   ┆ 90    │
+│ biscuits      ┆ 68    │
+│ broccoli      ┆ 84    │
+│ butter        ┆ 346   │
+│ cabbage       ┆ 92    │
+│ capsicum      ┆ 89    │
+│ carrot        ┆ 379   │
+│ cauliflower   ┆ 79    │
+│ cheese        ┆ 137   │
+│ chicken       ┆ 106   │
+│ chilli pepper ┆ 87    │
+│ corn          ┆ 124   │
+│ croissant     ┆ 75    │
+│ cucumber      ┆ 201   │
+│ egg           ┆ 209   │
+│ eggplant      ┆ 84    │
+│ garlic        ┆ 92    │
+│ ginger        ┆ 68    │
+│ grapes        ┆ 100   │
+│ gruyere       ┆ 71    │
+│ honey         ┆ 65    │
+│ jalepeno      ┆ 88    │
+│ jam           ┆ 163   │
+│ kiwi          ┆ 88    │
+│ lemon         ┆ 82    │
+│ lettuce       ┆ 97    │
+│ mandarine     ┆ 69    │
+│ mango         ┆ 86    │
+│ mayonnaise    ┆ 43    │
+│ onion         ┆ 135   │
+│ orange        ┆ 69    │
+│ paprika       ┆ 83    │
+│ parmesan      ┆ 68    │
+│ pear          ┆ 89    │
+│ peas          ┆ 100   │
+│ pickle        ┆ 28    │
+│ pineapple     ┆ 99    │
+│ pomegranate   ┆ 79    │
+│ potato        ┆ 77    │
+│ raddish       ┆ 81    │
+│ rice          ┆ 256   │
+│ salami        ┆ 49    │
+│ salmon        ┆ 51    │
+│ soy beans     ┆ 97    │
+│ spinach       ┆ 97    │
+│ strawberries  ┆ 87    │
+│ sweetcorn     ┆ 91    │
+│ tea           ┆ 177   │
+│ tomato        ┆ 450   │
+│ turnip        ┆ 98    │
+│ water         ┆ 863   │
+│ watermelon    ┆ 84    │
+│ zucchini      ┆ 90    │
+└───────────────┴───────┘
