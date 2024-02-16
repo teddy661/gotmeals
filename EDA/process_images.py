@@ -83,8 +83,10 @@ def rescale_image_for_imagenet(image: bytes, new_image_size: int = 256) -> np.ar
 
 
 def main():
-    pass
-
+    pc = ProjectConfig()
+    common_dataset_path = pc.data_root_dir.joinpath("common_ingredient_images_dataset.parquet")
+    df = pl.read_parquet()
+    
 
 if __name__ == "__main__":
     mp.freeze_support()
