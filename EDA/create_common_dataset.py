@@ -19,6 +19,9 @@ from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
 
 def main():
     pc = ProjectConfig()
+    common_dataset_images_path = pc.data_root_dir(
+        "common_ingredient_images_dataset.parquet"
+    )
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO,
@@ -45,13 +48,13 @@ def main():
             if df_filtered.height > 0:
                 common_df = pl.concat([common_df, df_filtered])
             logging.info(
-                f"Ingredient:\t{row['ClassId']:15}\tAdded:\t{df_filtered.height:4d} rows"
+                f"Ingredient:\t{row['ClassId']:15}\tAdded:\t{df_filtered.height:-4d} rows"
             )
         del df
         del df_filtered
 
     common_df.write_parquet(
-        "common_ingredient_images_dataset.parquet",
+        common_dataset_images_path,
         compression="uncompressed",
     )
 
