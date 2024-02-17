@@ -50,7 +50,7 @@ def process_chunk(args: tuple) -> pl.DataFrame:
 
 def convert_numpy_to_bytesio(image: np.array) -> bytes:
     """
-    Save a numpy array to a BytesIO object
+    Save a numpy array to a BytesIO object name is image
     """
     mem_file = BytesIO()
     np.savez_compressed(mem_file, image=image)

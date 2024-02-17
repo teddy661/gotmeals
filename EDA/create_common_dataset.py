@@ -19,7 +19,7 @@ from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
 
 def main():
     pc = ProjectConfig()
-    common_dataset_images_path = pc.data_root_dir(
+    common_dataset_images_path = pc.data_root_dir.joinpath(
         "common_ingredient_images_dataset.parquet"
     )
     logging.basicConfig(

@@ -10,7 +10,7 @@ import polars as pl
 import psutil
 from PIL import Image
 from skimage.transform import rescale, rotate
-
+from blake3 import blake3
 from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
 
 
@@ -71,7 +71,7 @@ def rescale_image(image: bytes, new_image_size: int = 64) -> tuple:
     )
 
 
-def rescale_image_for_imagenet(image: bytes, new_image_size: int = 256) -> np.array:
+def rescale_image_for_imagenet(image: np.ndarray, new_image_size: int = 256) -> np.array:
     _, _, rs_image = rescale_image(image, new_image_size=new_image_size)
     rs_image = np.load(BytesIO(rs_image))
     cropped_image = center_crop(rs_image, 224, 224)
@@ -83,10 +83,22 @@ def rescale_image_for_imagenet(image: bytes, new_image_size: int = 256) -> np.ar
 
 
 def main():
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        level=logging.INFO,
+    )
     pc = ProjectConfig()
     common_dataset_path = pc.data_root_dir.joinpath("common_ingredient_images_dataset.parquet")
-    df = pl.read_parquet()
-    
+    extracted_common_images_path = pc.data_root_dir.joinpath("extracted_common_images")
+    if not extracted_common_images_path.exists():
+        extracted_common_images_path.mkdir(parents=True)
+    df = pl.read_parquet(common_dataset_path, n_rows=100)
+    t_image = np.load(BytesIO(df['Image_Data'][0]))
+    image = t_image['image']
+    del t_image
+    print(type(image))
+    print(image.shape)
+    #logging.info(f"Converting {col_name} to list")
 
 if __name__ == "__main__":
     mp.freeze_support()
