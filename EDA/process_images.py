@@ -12,22 +12,10 @@ from blake3 import blake3
 from PIL import Image
 from skimage.transform import rescale, rotate
 
-from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
+from utils import *
 
-
-def load_image(image_data: bytes) -> np.array:
-    """
-    Load an image from a byte stream.
-
-    Parameters:
-    - image: Byte stream representing the image.
-
-    Returns:
-    - NumPy array representing the image.
-    """
-    t_image = np.load(BytesIO(image_data))
-    image = t_image["image"]
-    return image
+pc = ProjectConfig()
+EXTRACTED_COMMON_IMAGES_PATH = pc.data_root_dir.joinpath("extracted_common_images")
 
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
@@ -56,7 +44,7 @@ def center_crop(image: np.array, target_height: int, target_width: int) -> np.ar
     return cropped_image
 
 
-def rescale_image(image: bytes, new_image_size: int = 64) -> tuple:
+def rescale_image(image: np.ndarray, new_image_size: int = 64) -> tuple:
     """
     Rescale the image to a standard size. Median for our dataset is 35x35.
     Use order = 5 for (Bi-quintic) #Very slow Super high quality result.
@@ -87,15 +75,64 @@ def rescale_image(image: bytes, new_image_size: int = 64) -> tuple:
 
 
 def rescale_image_for_imagenet(
-    image: np.ndarray, new_image_size: int = 256
+    class_id: str, image_path: str, new_image_size: int = 256
 ) -> np.array:
-    _, _, rs_image = rescale_image(image, new_image_size=new_image_size)
+    image_path = Path(image_path)
+    image = Image.open(image_path)
+    if image.format == "PNG":
+        if image.mode != "RGBA":
+            image = image.convert("RGBA")
+        else:
+            image = image.convert("RGB")
+    else:
+        image = image.convert("RGB")
+
+    image_data = np.asarray(image, dtype=np.float64) / 255.0
+    _, _, rs_image = rescale_image(image_data, new_image_size=new_image_size)
     cropped_image = center_crop(rs_image, 224, 224)
+    cropped_image_hash = blake3(cropped_image.tobytes()).hexdigest()
+    image_target_dir = EXTRACTED_COMMON_IMAGES_PATH.joinpath(class_id)
+    if not image_target_dir.exists():
+        image_target_dir.mkdir(parents=True)
+    image_abs_path = image_target_dir.joinpath(cropped_image_hash + ".png")
+    cropped_image_pil = Image.fromarray((cropped_image * 255).astype(np.uint8))
+    cropped_image_pil.save(image_abs_path)
     return (
         cropped_image.shape[1],
         cropped_image.shape[0],
-        cropped_image,
+        cropped_image.shape[0] * cropped_image.shape[1],
+        str(image_abs_path),
     )
+
+
+def scale_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
+    """
+    To parallelize the workflow each of the functions previously defined needs
+    to be wrapped in a function that takes a dataframe and returns a dataframe.
+    This one reads an image from disk and stores it as a flattened list in a column.
+    We convert the image to float32 and normalize it to the range of 0-1. cvtColor is which
+    we use extensively expects thing in uint8 format. We'll convert back to float32.
+    The meta images are png with 4 channels add .convert('RGB') to convert to 3 channels
+    doesn't affect the existing jpg
+    """
+    df = df.with_columns(
+        pl.struct(["ClassId", "Image_Path"])
+        .map_elements(
+            lambda x: dict(
+                zip(
+                    (
+                        "Scaled_Width",
+                        "Scaled_Height",
+                        "Scaled_Resolution",
+                        "Scaled_Image_Path",
+                    ),
+                    rescale_image_for_imagenet(x["ClassId"], x["Image_Path"]),
+                )
+            )
+        )
+        .alias("New_Cols")
+    ).unnest("New_Cols")
+    return df
 
 
 def main():
@@ -103,20 +140,21 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO,
     )
-    pc = ProjectConfig()
+
     common_dataset_path = pc.data_root_dir.joinpath(
         "common_ingredient_images_dataset.parquet"
     )
-    extracted_common_images_path = pc.data_root_dir.joinpath("extracted_common_images")
-    if not extracted_common_images_path.exists():
-        extracted_common_images_path.mkdir(parents=True)
-    df = pl.read_parquet(common_dataset_path, n_rows=100)
-    _, _, new_image = rescale_image_for_imagenet(load_image(df["Image_Data"][0]))
-    image_name = blake3(new_image.tobytes()).hexdigest()
-    print(type(new_image))
-    print(new_image.shape)
-    print(hash)
-    # logging.info(f"Converting {col_name} to list")
+
+    if not EXTRACTED_COMMON_IMAGES_PATH.exists():
+        EXTRACTED_COMMON_IMAGES_PATH.mkdir(parents=True)
+    logging.info(f"Reading {common_dataset_path}")
+    df = pl.read_parquet(common_dataset_path)
+    logging.info(f"Scaling images")
+    df = parallelize_dataframe(df, scale_image_wrapper, 8)
+
+    scaled_image_parquet = pc.data_root_dir.joinpath("extracted_common_images.parquet")
+    df.write_parquet(scaled_image_parquet, compression="lz4")
+    logging.info(f"Writing {scaled_image_parquet}")
 
 
 if __name__ == "__main__":
