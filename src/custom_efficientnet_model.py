@@ -1,4 +1,5 @@
 import os
+import pickle
 import platform
 from pathlib import Path
 
@@ -88,7 +89,7 @@ def main():
         // validation_generator.batch_size,
     )
     joblib.dump(
-        history.history, "history.lzma", compress=3, protocol=joblib.HIGHEST_PROTOCOL
+        history.history, "history.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
     )
     model.save("efficientnet_v2m.h5")
 
