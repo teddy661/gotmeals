@@ -14,7 +14,7 @@ import polars as pl
 import psutil
 from PIL import Image
 
-from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
+from utils import *
 
 pc = ProjectConfig()
 
@@ -22,57 +22,6 @@ pc = ProjectConfig()
 CLASSIFICATION_ROOT = pc.data_root_dir.joinpath(
     "GroceryStoreDataset/GroceryStoreDataset/dataset"
 )
-
-
-def update_path(path: Path, root_dir: Path) -> str:
-    return str(root_dir.joinpath(path).resolve())
-
-
-def read_image(image_path: Path) -> tuple:
-    image = Image.open(image_path)
-    if image.format == "PNG":
-        if image.mode != "RGBA":
-            image = image.convert("RGBA")
-        else:
-            image = image.convert("RGB")
-    else:
-        image = image.convert("RGB")
-
-    image_data = np.asarray(image, dtype=np.float32) / 255.0
-    image_height = image_data.shape[0]
-    image_width = image_data.shape[1]
-    image_resolution = image_height * image_width
-    return (
-        image_width,
-        image_height,
-        image_resolution,
-        convert_numpy_to_bytesio(image_data),
-    )
-
-
-def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
-    """
-    To parallelize the workflow each of the functions previously defined needs
-    to be wrapped in a function that takes a dataframe and returns a dataframe.
-    This one reads an image from disk and stores it as a flattened list in a column.
-    We convert the image to float32 and normalize it to the range of 0-1. cvtColor is which
-    we use extensively expects thing in uint8 format. We'll convert back to float32.
-    The meta images are png with 4 channels add .convert('RGB') to convert to 3 channels
-    doesn't affect the existing jpg
-    """
-    df = df.with_columns(
-        pl.col("Image_Path")
-        .map_elements(
-            lambda x: dict(
-                zip(
-                    ("Width", "Height", "Resolution", "Image_Data"),
-                    read_image(x),
-                )
-            )
-        )
-        .alias("New_Cols")
-    ).unnest("New_Cols")
-    return df
 
 
 def main():
@@ -124,7 +73,7 @@ def main():
     )
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
     df = df.rename({"Coarse Class Name (str)": "ClassId"})
-    df = df.rename({'Iconic Image Path (str)': "ImageId"})
+    df = df.rename({"Iconic Image Path (str)": "ImageId"})
     df = df.select(
         pl.col("ClassId"),
         pl.col("ImageId"),
@@ -132,7 +81,6 @@ def main():
         pl.col("Width"),
         pl.col("Height"),
         pl.col("Resolution"),
-        pl.col("Image_Data"),
     )
     print(df.head())
     df.write_parquet(target_parquet_file, compression="lz4", compression_level=3)

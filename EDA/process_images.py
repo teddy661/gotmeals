@@ -8,10 +8,26 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 import psutil
+from blake3 import blake3
 from PIL import Image
 from skimage.transform import rescale, rotate
-from blake3 import blake3
+
 from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
+
+
+def load_image(image_data: bytes) -> np.array:
+    """
+    Load an image from a byte stream.
+
+    Parameters:
+    - image: Byte stream representing the image.
+
+    Returns:
+    - NumPy array representing the image.
+    """
+    t_image = np.load(BytesIO(image_data))
+    image = t_image["image"]
+    return image
 
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
@@ -50,7 +66,6 @@ def rescale_image(image: bytes, new_image_size: int = 64) -> tuple:
     and always return an image of dtype float64 which we truncate back to float32
     which is our standard image format due to cvtColor limitations
     """
-    image = np.load(BytesIO(image))
     scale = new_image_size / min(image.shape[:2])
     image = rescale(image, scale, order=5, anti_aliasing=True, channel_axis=2)
     image = image[
@@ -67,18 +82,19 @@ def rescale_image(image: bytes, new_image_size: int = 64) -> tuple:
     return (
         scaled_image_width,
         scaled_image_height,
-        convert_numpy_to_bytesio(image),
+        image,
     )
 
 
-def rescale_image_for_imagenet(image: np.ndarray, new_image_size: int = 256) -> np.array:
+def rescale_image_for_imagenet(
+    image: np.ndarray, new_image_size: int = 256
+) -> np.array:
     _, _, rs_image = rescale_image(image, new_image_size=new_image_size)
-    rs_image = np.load(BytesIO(rs_image))
     cropped_image = center_crop(rs_image, 224, 224)
     return (
         cropped_image.shape[1],
         cropped_image.shape[0],
-        convert_numpy_to_bytesio(cropped_image),
+        cropped_image,
     )
 
 
@@ -88,17 +104,20 @@ def main():
         level=logging.INFO,
     )
     pc = ProjectConfig()
-    common_dataset_path = pc.data_root_dir.joinpath("common_ingredient_images_dataset.parquet")
+    common_dataset_path = pc.data_root_dir.joinpath(
+        "common_ingredient_images_dataset.parquet"
+    )
     extracted_common_images_path = pc.data_root_dir.joinpath("extracted_common_images")
     if not extracted_common_images_path.exists():
         extracted_common_images_path.mkdir(parents=True)
     df = pl.read_parquet(common_dataset_path, n_rows=100)
-    t_image = np.load(BytesIO(df['Image_Data'][0]))
-    image = t_image['image']
-    del t_image
-    print(type(image))
-    print(image.shape)
-    #logging.info(f"Converting {col_name} to list")
+    _, _, new_image = rescale_image_for_imagenet(load_image(df["Image_Data"][0]))
+    image_name = blake3(new_image.tobytes()).hexdigest()
+    print(type(new_image))
+    print(new_image.shape)
+    print(hash)
+    # logging.info(f"Converting {col_name} to list")
+
 
 if __name__ == "__main__":
     mp.freeze_support()

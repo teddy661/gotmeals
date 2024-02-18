@@ -14,10 +14,20 @@ import polars as pl
 import psutil
 from PIL import Image
 
-from utils import ProjectConfig, convert_numpy_to_bytesio, parallelize_dataframe
+from utils import *
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Parse FruitsClassification dataset")
+    parser.add_argument(
+        "-f",
+        dest="force",
+        help="force overwrite of existing parquet files",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    prog_name = parser.prog
+
     pc = ProjectConfig()
     common_dataset_images_path = pc.data_root_dir.joinpath(
         "common_ingredient_images_dataset.parquet"
@@ -26,6 +36,12 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO,
     )
+    if common_dataset_images_path.exists() and not args.force:
+        logging.error(f"File {common_dataset_images_path} already exists.")
+        exit(1)
+    elif common_dataset_images_path.exists() and args.force:
+        common_dataset_images_path.unlink(missing_ok=True)
+
     common_columns = [
         ("ClassId", pl.Utf8),
         ("ImageId", pl.Utf8),
@@ -33,7 +49,6 @@ def main():
         ("Width", pl.Int64),
         ("Height", pl.Int64),
         ("Resolution", pl.Int64),
-        ("Image_Data", pl.Binary),
     ]
     common_df = pl.DataFrame({}, schema=common_columns)
     common_ingredients = pl.read_parquet("common_ingredients.parquet")
