@@ -76,14 +76,14 @@ def main():
 
     model = Model(inputs=base_model.input, outputs=predictions)
 
-    optimizer = Adam(learning_rate=0.00001)
+    optimizer = Adam(learning_rate=0.0001)
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
     )
     history = model.fit(
         train_generator,
         steps_per_epoch=train_generator.samples // train_generator.batch_size,
-        epochs=10,
+        epochs=5,
         validation_data=validation_generator,
         validation_steps=validation_generator.samples
         // validation_generator.batch_size,
@@ -91,7 +91,7 @@ def main():
     joblib.dump(
         history.history, "history.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
     )
-    model.save("efficientnet_v2m.h5")
+    model.save("efficientnet_v2m.keras")
 
 
 if __name__ == "__main__":
