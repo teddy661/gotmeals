@@ -3,6 +3,7 @@ import pickle
 import platform
 from pathlib import Path
 
+import albumentations as A
 import joblib
 import keras
 import numpy as np
@@ -19,6 +20,7 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import Sequence
 
 
 class ProjectConfig:
@@ -42,26 +44,45 @@ def main():
     pc = ProjectConfig()
     training_dir_path = pc.data_root_dir.joinpath("extracted_common_images")
     NUM_CLASSES = 0
-    NUM_EPOCHS = 2
+    NUM_EPOCHS = 20
     BATCH_SIZE = 16
+    LEARNING_RATE = 0.000001
     for i in training_dir_path.iterdir():
         if i.is_dir():
             NUM_CLASSES += 1
-    train_datagen = ImageDataGenerator(rescale=1.0 / 255, validation_split=0.2)
+
+    train_datagen = ImageDataGenerator(
+        rescale=1.0 / 255,
+        rotation_range=40,  # Random rotations from 0 to 40 degrees
+        width_shift_range=0.2,  # Random horizontal shifts (as a fraction of total width)
+        height_shift_range=0.2,  # Random vertical shifts (as a fraction of total height)
+        shear_range=0.2,  # Shear transformation intensity
+        zoom_range=0.2,  # Random zoom range
+        horizontal_flip=True,  # Enable random horizontal flips
+        fill_mode="nearest",  # Strategy for filling in newly created pixels
+        validation_split=0.2,
+    )
+
     train_generator = train_datagen.flow_from_directory(
         training_dir_path,
         target_size=(224, 224),
         batch_size=BATCH_SIZE,
         class_mode="sparse",
         subset="training",
+        shuffle=True,
+        seed=42,
     )
+
     validation_generator = train_datagen.flow_from_directory(
         training_dir_path,
         target_size=(224, 224),
         batch_size=BATCH_SIZE,
         class_mode="sparse",
         subset="validation",
+        shuffle=True,
+        seed=42,
     )
+
     class_list = list(train_generator.class_indices.keys())
     joblib.dump(
         class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
@@ -83,7 +104,7 @@ def main():
 
     model = Model(inputs=base_model.input, outputs=predictions)
 
-    optimizer = Adam(learning_rate=0.0001)
+    optimizer = Adam(learning_rate=LEARNING_RATE)
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
     )
