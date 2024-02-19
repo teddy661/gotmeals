@@ -2,6 +2,7 @@ import pickle
 import platform
 from pathlib import Path
 
+import joblib
 import keras
 import numpy as np
 import tensorflow as tf
@@ -11,7 +12,7 @@ from keras.applications.efficientnet_v2 import (
     preprocess_input,
 )
 from platformdirs import user_documents_dir
-import joblib
+
 
 class ProjectConfig:
     def __init__(self):
@@ -49,4 +50,3 @@ preds = model.predict(x)
 best_pred = np.argmax(preds)
 predicted_class = class_list[best_pred]
 print(f"Predicted: {predicted_class}: {preds[0][best_pred]}")
-

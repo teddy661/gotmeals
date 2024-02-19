@@ -61,7 +61,9 @@ def main():
         subset="validation",
     )
     class_list = list(train_generator.class_indices.keys())
-    joblib.dump(class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL)
+    joblib.dump(
+        class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
+    )
 
     base_model = EfficientNetV2M(
         weights="imagenet", include_top=False, input_shape=(224, 224, 3)
