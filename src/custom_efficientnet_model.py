@@ -60,6 +60,9 @@ def main():
         class_mode="sparse",
         subset="validation",
     )
+    class_list = list(train_generator.class_indices.keys())
+    joblib.dump(class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL)
+
     base_model = EfficientNetV2M(
         weights="imagenet", include_top=False, input_shape=(224, 224, 3)
     )
@@ -83,7 +86,7 @@ def main():
     history = model.fit(
         train_generator,
         steps_per_epoch=train_generator.samples // train_generator.batch_size,
-        epochs=5,
+        epochs=2,
         validation_data=validation_generator,
         validation_steps=validation_generator.samples
         // validation_generator.batch_size,
@@ -91,7 +94,7 @@ def main():
     joblib.dump(
         history.history, "history.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
     )
-    model.save("efficientnet_v2m.keras")
+    model.save("efficientnet_v2m.h5", save_format="h5")
 
 
 if __name__ == "__main__":
