@@ -42,6 +42,8 @@ def main():
     pc = ProjectConfig()
     training_dir_path = pc.data_root_dir.joinpath("extracted_common_images")
     NUM_CLASSES = 0
+    NUM_EPOCHS = 2
+    BATCH_SIZE = 16
     for i in training_dir_path.iterdir():
         if i.is_dir():
             NUM_CLASSES += 1
@@ -49,14 +51,14 @@ def main():
     train_generator = train_datagen.flow_from_directory(
         training_dir_path,
         target_size=(224, 224),
-        batch_size=32,
+        batch_size=BATCH_SIZE,
         class_mode="sparse",
         subset="training",
     )
     validation_generator = train_datagen.flow_from_directory(
         training_dir_path,
         target_size=(224, 224),
-        batch_size=32,
+        batch_size=BATCH_SIZE,
         class_mode="sparse",
         subset="validation",
     )
@@ -88,7 +90,7 @@ def main():
     history = model.fit(
         train_generator,
         steps_per_epoch=train_generator.samples // train_generator.batch_size,
-        epochs=2,
+        epochs=NUM_EPOCHS,
         validation_data=validation_generator,
         validation_steps=validation_generator.samples
         // validation_generator.batch_size,
