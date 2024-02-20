@@ -15,12 +15,13 @@ from keras.applications.efficientnet_v2 import (
 )
 from platformdirs import user_documents_dir
 from tensorflow.keras import initializers
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import Sequence
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
 class ProjectConfig:
@@ -44,9 +45,12 @@ def main():
     pc = ProjectConfig()
     training_dir_path = pc.data_root_dir.joinpath("extracted_common_images")
     NUM_CLASSES = 0
-    NUM_EPOCHS = 20
-    BATCH_SIZE = 16
+    NUM_EPOCHS = 1000
+    BATCH_SIZE = 20
     LEARNING_RATE = 0.0001
+    MODEL_DIR = Path("./model_saves").resolve()
+    MODEL_NAME = "effnetv2m"
+
     for i in training_dir_path.iterdir():
         if i.is_dir():
             NUM_CLASSES += 1
@@ -97,7 +101,9 @@ def main():
     # Modify the output layer
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = Dropout(0.5)(x)
+    x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(512, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(128, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(64, activation='relu', kernel_initializer=initializers.HeNormal())(x)
@@ -109,6 +115,22 @@ def main():
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
     )
+    early_stopping = EarlyStopping(
+        monitor="val_loss",
+        mode="min",
+        verbose=2,
+        patience=50,
+        min_delta=0.0001,
+        restore_best_weights=True,
+    )
+    model_checkpoint = ModelCheckpoint(
+        "model_checkpoints/{epoch:04d}-{val_loss:.2f}",
+        monitor="val_loss",
+        mode="min",
+        verbose=1,
+        save_weights_only=False,
+        save_best_only=False,
+    )
     history = model.fit(
         train_generator,
         steps_per_epoch=train_generator.samples // train_generator.batch_size,
@@ -116,6 +138,8 @@ def main():
         validation_data=validation_generator,
         validation_steps=validation_generator.samples
         // validation_generator.batch_size,
+        verbose=2,
+        callbacks=[early_stopping],
     )
     joblib.dump(
         history.history, "history.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
