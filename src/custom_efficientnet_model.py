@@ -16,7 +16,7 @@ from keras.applications.efficientnet_v2 import (
 from platformdirs import user_documents_dir
 from tensorflow.keras import initializers
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -102,8 +102,9 @@ def main():
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = Dropout(0.2)(x)
+    x = BatchNormalization()(x)
     x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = Dense(512, activation='relu', kernel_initializer=initializers.HeNormal())(x)
+    x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(128, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(64, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     predictions = Dense(NUM_CLASSES, activation="softmax")(x)
@@ -117,7 +118,7 @@ def main():
     early_stopping = EarlyStopping(
         monitor="val_loss",
         mode="min",
-        verbose=2,
+        verbose=1,
         patience=10,
         min_delta=0.001,
         restore_best_weights=True,
