@@ -47,7 +47,7 @@ def main():
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 20
-    LEARNING_RATE = 0.0001
+    LEARNING_RATE = 0.0001  # Default is 0.001
     MODEL_DIR = Path("./model_saves").resolve()
     MODEL_NAME = "efficientnet_v2m"
 
@@ -102,9 +102,10 @@ def main():
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = Dropout(0.2)(x)
-    x = BatchNormalization()(x)
+    # x = BatchNormalization()(x)
     x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    # x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    # x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(128, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(64, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     predictions = Dense(NUM_CLASSES, activation="softmax")(x)
