@@ -15,13 +15,13 @@ from keras.applications.efficientnet_v2 import (
 )
 from platformdirs import user_documents_dir
 from tensorflow.keras import initializers
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import Sequence
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
 class ProjectConfig:
@@ -49,7 +49,7 @@ def main():
     BATCH_SIZE = 20
     LEARNING_RATE = 0.0001
     MODEL_DIR = Path("./model_saves").resolve()
-    MODEL_NAME = "effnetv2m"
+    MODEL_NAME = "efficientnet_v2m"
 
     for i in training_dir_path.iterdir():
         if i.is_dir():
@@ -101,9 +101,8 @@ def main():
     # Modify the output layer
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = Dropout(0.5)(x)
-    x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = Dropout(0.2)(x)
+    x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(512, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(128, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     # x = Dense(64, activation='relu', kernel_initializer=initializers.HeNormal())(x)
@@ -119,8 +118,8 @@ def main():
         monitor="val_loss",
         mode="min",
         verbose=2,
-        patience=50,
-        min_delta=0.0001,
+        patience=10,
+        min_delta=0.001,
         restore_best_weights=True,
     )
     model_checkpoint = ModelCheckpoint(
@@ -138,13 +137,19 @@ def main():
         validation_data=validation_generator,
         validation_steps=validation_generator.samples
         // validation_generator.batch_size,
-        verbose=2,
+        verbose=1,
         callbacks=[early_stopping],
     )
-    joblib.dump(
-        history.history, "history.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
+    if MODEL_DIR.exists() is False:
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    with open(MODEL_DIR.joinpath(MODEL_NAME + "_history"), "wb") as history_file:
+        pickle.dump(history.history, history_file, protocol=pickle.HIGHEST_PROTOCOL)
+    model.save(
+        MODEL_DIR.joinpath(MODEL_NAME + ".h5"),
+        save_format="h5",
+        overwrite=True,
+        include_optimizer=True,
     )
-    model.save("efficientnet_v2m.h5", save_format="h5")
 
 
 if __name__ == "__main__":
