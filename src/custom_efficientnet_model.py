@@ -46,13 +46,14 @@ def main():
     NUM_CLASSES = 0
     NUM_EPOCHS = 20
     BATCH_SIZE = 16
-    LEARNING_RATE = 0.000001
+    LEARNING_RATE = 0.0001
     for i in training_dir_path.iterdir():
         if i.is_dir():
             NUM_CLASSES += 1
 
     train_datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
+        preprocessing_function=preprocess_input,
+        # rescale=1.0 / 255, # DO NOT TURN THIS ON FOR EFFICIENT NET! BAD THINGS
         rotation_range=40,  # Random rotations from 0 to 40 degrees
         width_shift_range=0.2,  # Random horizontal shifts (as a fraction of total width)
         height_shift_range=0.2,  # Random vertical shifts (as a fraction of total height)
