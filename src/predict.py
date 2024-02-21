@@ -37,6 +37,7 @@ if not model_path.exists():
     raise FileNotFoundError(f"Model file not found: {model_path}")
 print(f"BEGIN loading Model: {model_path}")
 model = keras.models.load_model(model_path)
+model.trainable = False
 print(f"END loading Model {model_path}")
 data_dir = pc.data_root_dir.joinpath("extracted_common_images")
 image_to_predict_path = data_dir.joinpath(
