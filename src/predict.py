@@ -29,7 +29,12 @@ class ProjectConfig:
 
 
 pc = ProjectConfig()
-model_path = pc.project_root_dir.joinpath("src/efficientnet_v2m.h5")
+MODEL_DIR = Path("./model_saves").resolve()
+MODEL_NAME = "efficientnet_v2m"
+MODEL_PATH = MODEL_DIR.joinpath(MODEL_NAME + ".h5")
+model_path = pc.project_root_dir.joinpath(MODEL_PATH)
+if not model_path.exists():
+    raise FileNotFoundError(f"Model file not found: {model_path}")
 print(f"BEGIN loading Model: {model_path}")
 model = keras.models.load_model(model_path)
 print(f"END loading Model {model_path}")
