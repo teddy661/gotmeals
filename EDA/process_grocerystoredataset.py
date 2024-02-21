@@ -14,64 +14,41 @@ import polars as pl
 import psutil
 from PIL import Image
 
-from utils import convert_numpy_to_bytesio, parallelize_dataframe
+from utils import *
 
-DATA_ROOT = Path("C:/Users/teddy/Documents/01-Berkeley/210/data")
-CLASSIFICATION_ROOT = DATA_ROOT.joinpath(
+pc = ProjectConfig()
+
+
+CLASSIFICATION_ROOT = pc.data_root_dir.joinpath(
     "GroceryStoreDataset/GroceryStoreDataset/dataset"
 )
 
 
-def update_path(path: Path, root_dir: Path) -> str:
-    return str(root_dir.joinpath(path).resolve())
-
-
-def read_image(image_path: Path) -> tuple:
-    image_data = (
-        np.asarray(Image.open(image_path).convert("RGB"), dtype=np.float32) / 255.0
-    )
-    image_height = image_data.shape[0]
-    image_width = image_data.shape[1]
-    image_resolution = image_height * image_width
-    return (
-        image_width,
-        image_height,
-        image_resolution,
-        convert_numpy_to_bytesio(image_data),
-    )
-
-
-def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
-    """
-    To parallelize the workflow each of the functions previously defined needs
-    to be wrapped in a function that takes a dataframe and returns a dataframe.
-    This one reads an image from disk and stores it as a flattened list in a column.
-    We convert the image to float32 and normalize it to the range of 0-1. cvtColor is which
-    we use extensively expects thing in uint8 format. We'll convert back to float32.
-    The meta images are png with 4 channels add .convert('RGB') to convert to 3 channels
-    doesn't affect the existing jpg
-    """
-    df = df.with_columns(
-        pl.col("Image_Path")
-        .map_elements(
-            lambda x: dict(
-                zip(
-                    ("Width", "Height", "Resolution", "Image_Data"),
-                    read_image(x),
-                )
-            )
-        )
-        .alias("New_Cols")
-    ).unnest("New_Cols")
-    return df
-
-
 def main():
+    parser = argparse.ArgumentParser(description="Parse GroceryStoreDataset dataset")
+    parser.add_argument(
+        "-f",
+        dest="force",
+        help="force overwrite of existing parquet files",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    prog_name = parser.prog
     if not CLASSIFICATION_ROOT.exists():
         logging.error(f"Directory {CLASSIFICATION_ROOT} does not exist.")
+        exit(1)
     TRAIN_IMG_DIR = CLASSIFICATION_ROOT.joinpath("dataset/train")
 
-    num_cpus = 8
+    target_parquet_file = pc.data_root_dir.joinpath("GroceryStoreDataset.parquet")
+    if target_parquet_file.exists() and not args.force:
+        logging.error(f"File {target_parquet_file} already exists.")
+        exit(1)
+    elif target_parquet_file.exists() and args.force:
+        target_parquet_file.unlink(missing_ok=True)
+
+    num_cpus = psutil.cpu_count(logical=False)
+    if num_cpus > 8:
+        num_cpus = 8
 
     train_df = pl.read_csv(CLASSIFICATION_ROOT.joinpath("train.txt"), has_header=False)
     train_df = train_df.rename(
@@ -81,6 +58,11 @@ def main():
             "column_3": "Coarse Class ID (int)",
         }
     )
+    train_df = train_df.select(pl.all().str.strip_chars())
+    train_df = train_df.select(
+        pl.col("Image_Path"), pl.all().exclude("Image_Path").cast(pl.Int64)
+    )
+
     classes_df = pl.read_csv(CLASSIFICATION_ROOT.joinpath("classes.csv"))
     df = train_df.join(classes_df, on="Class ID (int)")
     df = df.drop("Coarse Class ID (int)_right")
@@ -90,8 +72,18 @@ def main():
         .alias("Image_Path")
     )
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
+    df = df.rename({"Coarse Class Name (str)": "ClassId"})
+    df = df.rename({"Iconic Image Path (str)": "ImageId"})
+    df = df.select(
+        pl.col("ClassId"),
+        pl.col("ImageId"),
+        pl.col("Image_Path"),
+        pl.col("Width"),
+        pl.col("Height"),
+        pl.col("Resolution"),
+    )
     print(df.head())
-    df.write_parquet("grocerystoredataset.parquet", compression="snappy")
+    df.write_parquet(target_parquet_file, compression="lz4", compression_level=3)
 
 
 if __name__ == "__main__":
