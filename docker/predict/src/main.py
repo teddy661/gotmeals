@@ -63,14 +63,6 @@ async def return_health():
     return {"health": "ok"}
 
 
-@app.get("/hello", status_code=status.HTTP_200_OK)
-async def say_hello(name: str):
-    """Return 422 Bad Request if name is not specified as a query parameter.
-    Otherwise, return 200 and a json message of "hello [value].
-    """
-    return {"message": f"hello {name}"}
-
-
 @app.get("/version", status_code=status.HTTP_200_OK)
 async def return_git_version():
     if missing_app_version:
@@ -86,8 +78,13 @@ def read_imagefile(file) -> Image.Image:
 
 @app.post("/predict", status_code=status.HTTP_200_OK)
 async def predict(file: UploadFile = File(...)):
-    """Return 422 Bad Request if data is not specified as a query parameter.
-    Otherwise, return 200 and a json message of "hello [value].
+    """
+    Predict the ingredient in an image. Pretty bare, but it works.
+    Could be extended to multiple images. But for now it's just one.
+    Is also memory limited to the starlette default. Need to fix that
+
+    def upload(files: list[UploadFile] = File(...)):
+    for file in files:
     """
     image = read_imagefile(await file.read())
     image = keras.utils.img_to_array(image)
