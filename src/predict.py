@@ -47,8 +47,6 @@ class_list = joblib.load("class_list.lzma")
 
 print("BEGIN predicting")
 img = keras.utils.load_img(image_to_predict_path, target_size=(224, 224))
-print("END predicting")
-
 x = keras.utils.img_to_array(img)
 x = np.expand_dims(x, axis=0)
 x = preprocess_input(x)
