@@ -19,6 +19,8 @@ RUN . /app/venv/bin/activate && \
                 psutil \
                 joblib \
                 httpx \
+                pillow \
+                opencv-contrib-python-headless \
                 "fastapi[all]" \
                 "fastapi-cache2[redis]" \
                 python-multipart \

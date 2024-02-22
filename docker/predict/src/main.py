@@ -1,10 +1,19 @@
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
 import joblib
+import keras
+import numpy as np
 import tensorflow as tf
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from keras.applications.efficientnet_v2 import (
+    EfficientNetV2M,
+    decode_predictions,
+    preprocess_input,
+)
+from PIL import Image
+from pydantic import BaseModel, ConfigDict
 
 missing_app_version = False
 try:
@@ -15,6 +24,7 @@ except ImportError:
 
 script_path = Path(__file__).parent.absolute()
 sk_model_file = script_path.joinpath("efficientnet_v2m.h5")
+class_list = script_path.joinpath("class_list.lzma")
 if sk_model_file.exists():
     if sk_model_file.is_file():
         model = tf.keras.models.load_model(sk_model_file)
@@ -23,8 +33,20 @@ if sk_model_file.exists():
         print(f" {sk_model_file} isn't a file!")
 else:
     print(f" {sk_model_file} doesn't exist!")
+if class_list.exists():
+    if class_list.is_file():
+        class_list = joblib.load(class_list)
+    else:
+        print(f" {class_list} isn't a file!")
+
 
 app = FastAPI()
+
+
+class PredictResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    Ingredient: str
+    Confidence: float
 
 
 @app.get("/")
@@ -55,3 +77,26 @@ async def return_git_version():
         return {"git-version": "unknown"}
     else:
         return get_app_version()
+
+
+def read_imagefile(file) -> Image.Image:
+    image = keras.utils.load_img(BytesIO(file), target_size=(224, 224))
+    return image
+
+
+@app.post("/predict", status_code=status.HTTP_200_OK)
+async def predict(file: UploadFile = File(...)):
+    """Return 422 Bad Request if data is not specified as a query parameter.
+    Otherwise, return 200 and a json message of "hello [value].
+    """
+    image = read_imagefile(await file.read())
+    image = keras.utils.img_to_array(image)
+    image = np.expand_dims(image, axis=0)
+    image = preprocess_input(image)
+    prediction = model.predict(image)
+    best_pred_index = np.argmax(prediction)
+    predicted_class = class_list[best_pred_index]
+    final_result = PredictResult(
+        Ingredient=predicted_class, Confidence=prediction[0][best_pred_index]
+    )
+    return final_result
