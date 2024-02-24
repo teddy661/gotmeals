@@ -25,12 +25,13 @@ RUN . /app/venv/bin/activate && \
                 "fastapi-cache2[redis]" \
                 python-multipart \
                 pydantic \
-                "uvicorn[standard]"  && \find ./ \
-                                    \( \
-                                    \( -type d -a \( -name __pycache__ \) \) \
-                                    -o \
-                                    \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
-                                \) -exec rm -rf '{}' +;           
+                "uvicorn[standard]"  && \
+                find ./ \
+                    \( \
+                    \( -type d -a \( -name __pycache__ \) \) \
+                    -o \
+                    \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+                \) -exec rm -rf '{}' +;           
 FROM nvidia/cuda:12.2.2-cudnn8-runtime-rockylinux8 as prod
 RUN yum install dnf-plugins-core -y && \
     dnf install epel-release -y && \
