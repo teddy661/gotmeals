@@ -6,6 +6,7 @@ import joblib
 import keras
 import numpy as np
 import tensorflow as tf
+from blake3 import blake3
 from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from keras.applications.efficientnet_v2 import (
     EfficientNetV2M,
@@ -45,8 +46,9 @@ app = FastAPI()
 
 class PredictResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    Ingredient: str
-    Confidence: float
+    image_hash: str
+    ingredient: str
+    confidence: float
 
 
 @app.get("/")
@@ -87,6 +89,7 @@ async def predict(file: UploadFile = File(...)):
     for file in files:
     """
     image = read_imagefile(await file.read())
+    image_hash = blake3(await file.read()).hexdigest()
     image = keras.utils.img_to_array(image)
     image = np.expand_dims(image, axis=0)
     image = preprocess_input(image)
@@ -94,6 +97,8 @@ async def predict(file: UploadFile = File(...)):
     best_pred_index = np.argmax(prediction)
     predicted_class = class_list[best_pred_index]
     final_result = PredictResult(
-        Ingredient=predicted_class, Confidence=prediction[0][best_pred_index]
+        image_hash=image_hash,
+        ingredient=predicted_class,
+        confidence=prediction[0][best_pred_index],
     )
     return final_result
