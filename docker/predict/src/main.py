@@ -73,8 +73,8 @@ async def return_git_version():
         return get_app_version()
 
 
-def read_imagefile(file) -> Image.Image:
-    image = keras.utils.load_img(BytesIO(file), target_size=(224, 224))
+def convert_bytes_to_image(file_bytes) -> Image.Image:
+    image = keras.utils.load_img(file_bytes, target_size=(224, 224))
     return image
 
 
@@ -88,8 +88,9 @@ async def predict(file: UploadFile = File(...)):
     def upload(files: list[UploadFile] = File(...)):
     for file in files:
     """
-    image = read_imagefile(await file.read())
-    image_hash = blake3(await file.read()).hexdigest()
+    file_bytes = BytesIO(await file.read())
+    image_hash = blake3(file_bytes.getvalue()).hexdigest()
+    image = convert_bytes_to_image(file_bytes)
     image = keras.utils.img_to_array(image)
     image = np.expand_dims(image, axis=0)
     image = preprocess_input(image)
