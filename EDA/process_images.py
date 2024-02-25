@@ -90,13 +90,16 @@ def rescale_image_for_imagenet(
     image_data = np.asarray(image, dtype=np.float64) / 255.0
     _, _, rs_image = rescale_image(image_data, new_image_size=new_image_size)
     cropped_image = center_crop(rs_image, 224, 224)
-    cropped_image_hash = blake3(cropped_image.tobytes()).hexdigest()
     image_target_dir = EXTRACTED_COMMON_IMAGES_PATH.joinpath(class_id)
     if not image_target_dir.exists():
         image_target_dir.mkdir(parents=True)
-    image_abs_path = image_target_dir.joinpath(cropped_image_hash + ".png")
-    cropped_image_pil = Image.fromarray((cropped_image * 255).astype(np.uint8))
-    cropped_image_pil.save(image_abs_path)
+
+    with BytesIO() as bio:
+        Image.fromarray((cropped_image * 255).astype(np.uint8)).save(bio, format="PNG")
+        cropped_image_hash = blake3(bio.getvalue()).hexdigest()
+        image_abs_path = image_target_dir.joinpath(cropped_image_hash + ".png")
+        with open(image_abs_path, "wb") as f:
+            f.write(bio.getvalue())
     return (
         cropped_image.shape[1],
         cropped_image.shape[0],
