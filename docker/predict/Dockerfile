@@ -58,4 +58,4 @@ COPY . ./
 ENV TERM=xterm-256color
 ENV SHELL=/bin/bash
 ENTRYPOINT ["uvicorn"]
-CMD ["src.main:app", "--reload", "--host", "0.0.0.0", "--port",  "8000", "--workers", "2"]
+CMD ["src.main:app", "--host", "0.0.0.0", "--port",  "8000", "--workers", "2"]
