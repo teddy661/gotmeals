@@ -15,6 +15,7 @@ RUN . /app/venv/bin/activate && \
         pip3 install --no-cache-dir --upgrade setuptools wheel && \
         pip3 install --no-cache-dir \
                 tensorflow==2.15.0.post1 \
+                "aiohttp[speedups]" \
                 blake3 \
                 psutil \
                 joblib \
