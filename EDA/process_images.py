@@ -12,7 +12,7 @@ from blake3 import blake3
 from PIL import Image
 from skimage.transform import rescale, rotate
 
-from utils import *
+from utils import * 
 
 pc = ProjectConfig()
 EXTRACTED_COMMON_IMAGES_PATH = pc.data_root_dir.joinpath("extracted_common_images")
