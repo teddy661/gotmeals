@@ -1,3 +1,6 @@
+## Build currently !!!BROEKN!!! due to git+https requirement
+## git+https requires git which we don't want in the production image. 
+## will need to do a multi-stage build
 FROM ebrown/python:3.11 as assembled
 WORKDIR /app
 ENV LD_LIBRARY_PATH=/opt/python/py311/lib:${LD_LIBRARY_PATH}
