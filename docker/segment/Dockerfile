@@ -27,7 +27,7 @@ RUN . /app/venv/bin/activate && \
                 onnx \
                 git+https://github.com/facebookresearch/segment-anything.git \
                 heic2png \
-                gradio==3.50.2 \
+                gradio \
                 transformers \
                 "aiohttp[speedups]" \
                 blake3 \
@@ -80,5 +80,3 @@ ENV TERM=xterm-256color
 ENV SHELL=/bin/bash
 ENTRYPOINT ["python"]
 CMD ["app.py"]
-#app.py needs to be edited to app.launch(server_name="0.0.0.0", server_port=8080) bind to 0.0.0.0 not localhost
-#so dumb i should've know this ah hour and a half ago fix tomorrow.
