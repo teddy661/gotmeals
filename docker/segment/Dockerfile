@@ -38,6 +38,7 @@ RUN . /app/venv/bin/activate && \
                 opencv-contrib-python-headless \
                 "fastapi[all]" \
                 "fastapi-cache2[redis]" \
+                redis>=5.0.1 \
                 python-multipart \
                 pydantic \
                 "uvicorn[standard]"  && \
