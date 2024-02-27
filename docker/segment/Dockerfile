@@ -27,6 +27,8 @@ RUN . /app/venv/bin/activate && \
                 onnx \
                 git+https://github.com/facebookresearch/segment-anything.git \
                 heic2png \
+                gradio==3.50.2 \
+                transformers \
                 "aiohttp[speedups]" \
                 blake3 \
                 psutil \
@@ -44,7 +46,11 @@ RUN . /app/venv/bin/activate && \
                     \( -type d -a \( -name __pycache__ \) \) \
                     -o \
                     \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
-                \) -exec rm -rf '{}' +;           
+                \) -exec rm -rf '{}' +;
+WORKDIR /app 
+RUN git clone https://github.com/5663015/segment_anything_webui.git && mkdir -p segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
+COPY ./checkpoints /app/segment_anything_webui/checkpoints 
+COPY ./checkpoints/owlvit-base-patch32 /app/segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
 FROM nvidia/cuda:12.2.2-cudnn8-runtime-rockylinux8 as prod
 RUN yum install dnf-plugins-core -y && \
     dnf install epel-release -y && \
@@ -65,10 +71,10 @@ COPY --from=assembled /opt/python/py311 /opt/python/py311
 ENV LD_LIBRARY_PATH=/opt/python/py311/lib:${LD_LIBRARY_PATH}
 ENV PATH=/opt/python/py311/bin:${PATH}
 COPY --from=assembled /app/venv /app/venv/
+COPY --from=assembled /app/segment_anything_webui /app/segment_anything_webui
 ENV PATH /app/venv/bin:$PATH
-WORKDIR /app
-COPY . ./
+WORKDIR /app/segment_anything_webui
 ENV TERM=xterm-256color
 ENV SHELL=/bin/bash
-ENTRYPOINT ["uvicorn"]
-CMD ["src.main:app", "--host", "0.0.0.0", "--port",  "8000", "--workers", "2"]
+ENTRYPOINT ["python"]
+CMD ["app.py"]
