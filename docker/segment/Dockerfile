@@ -51,8 +51,12 @@ WORKDIR /app
 COPY ./segment_anything_webui /app/segment_anything_webui
 COPY ./segment_anything_webui/images /app/segment_anything_webui/images 
 RUN mkdir -p segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
-COPY ./checkpoints /app/segment_anything_webui/checkpoints 
-COPY ./checkpoints/owlvit-base-patch32 /app/segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
+WORKDIR /app/segment_anything_webui/checkpoints
+RUN curl -SLO https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+RUN curl -SLO https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+RUN curl -SLO https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+WORKDIR /app/segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
+RUN git clone https://huggingface.co/google/owlvit-base-patch32 .
 FROM nvidia/cuda:12.2.2-cudnn8-runtime-rockylinux8 as prod
 RUN yum install dnf-plugins-core -y && \
     dnf install epel-release -y && \
