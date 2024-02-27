@@ -47,8 +47,10 @@ RUN . /app/venv/bin/activate && \
                     -o \
                     \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
                 \) -exec rm -rf '{}' +;
-WORKDIR /app 
-RUN git clone https://github.com/5663015/segment_anything_webui.git && mkdir -p segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
+WORKDIR /app
+COPY ./segment_anything_webui /app/segment_anything_webui
+COPY ./segment_anything_webui/images /app/segment_anything_webui/images 
+RUN mkdir -p segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
 COPY ./checkpoints /app/segment_anything_webui/checkpoints 
 COPY ./checkpoints/owlvit-base-patch32 /app/segment_anything_webui/checkpoints/models--google--owlvit-base-patch32
 FROM nvidia/cuda:12.2.2-cudnn8-runtime-rockylinux8 as prod
@@ -78,3 +80,5 @@ ENV TERM=xterm-256color
 ENV SHELL=/bin/bash
 ENTRYPOINT ["python"]
 CMD ["app.py"]
+#app.py needs to be edited to app.launch(server_name="0.0.0.0", server_port=8080) bind to 0.0.0.0 not localhost
+#so dumb i should've know this ah hour and a half ago fix tomorrow.
