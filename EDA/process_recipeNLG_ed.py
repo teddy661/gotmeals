@@ -23,7 +23,7 @@ def main():
     pc = ProjectConfig()
 
     rnlg_data_dir = pc.data_root_dir.joinpath("RecipeDatabase")
-    rnlg_csv_file = rnlg_data_dir.joinpath("RecipeNLG_dataset.csv")
+    rnlg_csv_file = rnlg_data_dir.joinpath("recipe_dataset_cleaned_v3.csv")
     rnlg_parquet_file = pc.data_root_dir.joinpath("RecipeNLG_dataset.parquet")
     # Load the RecipeNLG dataset
     rnlg_df = pl.read_csv(rnlg_csv_file)
@@ -34,7 +34,8 @@ def main():
     )
     num_cpus = psutil.cpu_count(logical=False)
     ## Fix the '' column name to id
-    rnlg_df = rnlg_df.rename({"": "id"})
+    rnlg_df.drop_in_place("NER")
+    rnlg_df = rnlg_df.rename({"cleaned_NER": "NER"})
 
     ## Fix the columns into lists from strings
     column_names_convert_to_list = ["ingredients", "directions", "NER"]
@@ -46,22 +47,8 @@ def main():
             .alias(col_name),
         )
 
-    ## convert all ingredients to lower case and remove leading and trailing spaces for NER
-    ## do not do this conversion for ingredients column
-    ## also add a column for the length of the list
+    ## add a column for the length of the list
     for col_name in ["NER", "directions", "ingredients"]:
-        if col_name == "NER":
-            logging.info(f"Fixing Strings:\t{col_name}")
-            rnlg_df = rnlg_df.with_columns(
-                pl.col(col_name)
-                .map_elements(
-                    lambda lst: [
-                        " ".join([word.lower() for word in s.split() if word.isalpha()])
-                        for s in lst
-                    ]
-                )
-                .alias(col_name),
-            )
         logging.info(f"Adding Counts:\t{col_name}")
         rnlg_df = rnlg_df.with_columns(
             pl.col(col_name)
