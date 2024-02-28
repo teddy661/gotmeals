@@ -145,7 +145,7 @@ def main():
     )
 
     common_dataset_path = pc.data_root_dir.joinpath(
-        "common_ingredient_images_dataset.parquet"
+        "common_ingredients_images_corrected.parquet"
     )
 
     if not EXTRACTED_COMMON_IMAGES_PATH.exists():
