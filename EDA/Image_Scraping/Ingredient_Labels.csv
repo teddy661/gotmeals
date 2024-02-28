@@ -1,4 +1,4 @@
-Image_Labels,Image_Labels_jpg,Labels,In_Top_100
+Image_Labels,ImageId,ClassId,In_Top_100
 almonds_1,almonds_1.jpg,almonds,1
 almonds_2,almonds_2.jpg,almonds,1
 almonds_3,almonds_3.jpg,almonds,1
