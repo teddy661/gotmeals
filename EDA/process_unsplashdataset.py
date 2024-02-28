@@ -18,10 +18,8 @@ from utils import *
 
 pc = ProjectConfig()
 
-
-CLASSIFICATION_ROOT = pc.project_root_dir.joinpath(
-    "EDA/Image_Scraping"
-)
+Image.MAX_IMAGE_PIXELS = 110000000
+CLASSIFICATION_ROOT = pc.project_root_dir.joinpath("EDA/Image_Scraping")
 
 
 def main():
@@ -50,12 +48,15 @@ def main():
     if num_cpus > 8:
         num_cpus = 8
 
-    train_df = pl.read_csv(CLASSIFICATION_ROOT.joinpath("Ingredient_Labels.csv"), has_header=True)
+    train_df = pl.read_csv(
+        CLASSIFICATION_ROOT.joinpath("Ingredient_Labels.csv"), has_header=True
+    )
     df = train_df.with_columns(
         pl.col("ImageId")
         .map_elements(lambda x: update_path(x, TRAIN_IMG_DIR))
         .alias("Image_Path")
     )
+    df = df.filter(pl.col("In_Top_100") == 1)  # Only include top 100 ingredients
     df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
     df = df.select(
         pl.col("ClassId"),
