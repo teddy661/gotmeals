@@ -1,3 +1,4 @@
+import argparse
 import ast
 import logging
 import multiprocessing as mp
@@ -20,11 +21,25 @@ def clean_text(text: str) -> str:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Parse GroceryStoreDataset dataset")
+    parser.add_argument(
+        "-f",
+        dest="force",
+        help="force overwrite of existing parquet files",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    prog_name = parser.prog
     pc = ProjectConfig()
 
     rnlg_data_dir = pc.data_root_dir.joinpath("RecipeDatabase")
     rnlg_csv_file = rnlg_data_dir.joinpath("recipe_dataset_cleaned_v4.csv")
     rnlg_parquet_file = pc.data_root_dir.joinpath("RecipeNLG_dataset.parquet")
+    if rnlg_parquet_file.exists() and not args.force:
+        logging.error(f"File {rnlg_parquet_file} already exists.")
+        exit(1)
+    elif rnlg_parquet_file.exists() and args.force:
+        rnlg_parquet_file.unlink(missing_ok=True)
     # Load the RecipeNLG dataset
     rnlg_df = pl.read_csv(rnlg_csv_file)
 
