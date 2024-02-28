@@ -23,7 +23,7 @@ def main():
     pc = ProjectConfig()
 
     rnlg_data_dir = pc.data_root_dir.joinpath("RecipeDatabase")
-    rnlg_csv_file = rnlg_data_dir.joinpath("recipe_dataset_cleaned_v3.csv")
+    rnlg_csv_file = rnlg_data_dir.joinpath("recipe_dataset_cleaned_v4.csv")
     rnlg_parquet_file = pc.data_root_dir.joinpath("RecipeNLG_dataset.parquet")
     # Load the RecipeNLG dataset
     rnlg_df = pl.read_csv(rnlg_csv_file)
