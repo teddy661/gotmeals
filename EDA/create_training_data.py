@@ -158,7 +158,7 @@ def main():
     logging.info(f"Reading {common_dataset_path}")
     df = pl.read_parquet(common_dataset_path)
     logging.info(f"Scaling images")
-    df = parallelize_dataframe(df, scale_image_wrapper, 8)
+    df = parallelize_dataframe(df, scale_image_wrapper, 10)
 
     scaled_image_parquet = pc.data_root_dir.joinpath(target_name + ".parquet")
     df.write_parquet(scaled_image_parquet, compression="lz4")
