@@ -150,7 +150,7 @@ def main():
     )
 
     common_dataset_path = pc.data_root_dir.joinpath(
-        "common_ingredients_images_corrected.parquet"
+        "merged_dataset_corrected_classes.parquet"
     )
 
     if not TRAINING_DATA_PATH.exists():
