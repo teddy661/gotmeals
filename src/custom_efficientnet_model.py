@@ -31,7 +31,7 @@ def main():
     Stage this for transfer learning since we have an extremely small dataset for now
     """
     pc = ProjectConfig()
-    training_dir_path = pc.data_root_dir.joinpath("extracted_common_images")
+    training_dir_path = pc.data_root_dir.joinpath("sampled_training_data")
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 20
