@@ -8,6 +8,8 @@ from keras.applications.efficientnet_v2 import (
     preprocess_input,
 )
 
+from utils import *
+
 model = EfficientNetV2M(weights="imagenet")
 # img_path = Path(
 #    "../../data/FoodClassification/train_images/train_images/ff9aad660b.jpg"

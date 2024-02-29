@@ -5,23 +5,11 @@ from pathlib import Path
 import polars as pl
 from platformdirs import user_documents_dir
 
+from utils import *
+
 SAMPLES_PER_CLASS = 220
 RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
-
-
-class ProjectConfig:
-    def __init__(self):
-        self.system = platform.system()
-        self.user_documents_dir = Path(user_documents_dir())
-        if platform.system() == "Windows":
-            self.class_root_dir = self.user_documents_dir.joinpath("01-Berkeley/210")
-            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
-            self.data_root_dir = self.class_root_dir.joinpath("data")
-        elif platform.system() == "Linux":
-            self.class_root_dir = Path("/tf/notebooks")
-            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
-            self.data_root_dir = self.class_root_dir.joinpath("data")
 
 
 def get_sampled_data(raw_train_df: pl.DataFrame) -> pl.DataFrame:

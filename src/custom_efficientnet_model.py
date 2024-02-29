@@ -23,19 +23,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import Sequence
 
-
-class ProjectConfig:
-    def __init__(self):
-        self.system = platform.system()
-        self.user_documents_dir = Path(user_documents_dir())
-        if platform.system() == "Windows":
-            self.class_root_dir = self.user_documents_dir.joinpath("01-Berkeley/210")
-            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
-            self.data_root_dir = self.class_root_dir.joinpath("data")
-        elif platform.system() == "Linux":
-            self.class_root_dir = Path("/tf/notebooks")
-            self.project_root_dir = self.class_root_dir.joinpath("gotmeals")
-            self.data_root_dir = self.class_root_dir.joinpath("data")
+from utils import *
 
 
 def main():
