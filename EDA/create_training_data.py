@@ -159,7 +159,7 @@ def main():
     df = pl.read_parquet(common_dataset_path)
     logging.info(f"Scaling images")
 
-    num_cpus = pstuil.cpu_count(logical=False)
+    num_cpus = psutil.cpu_count(logical=False)
     if num_cpus > 6:
         num_cpus = 6
     df = parallelize_dataframe(df, scale_image_wrapper, num_cpus)
