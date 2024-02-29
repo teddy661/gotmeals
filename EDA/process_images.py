@@ -15,6 +15,7 @@ from skimage.transform import rescale, rotate
 from utils import *
 
 pc = ProjectConfig()
+Image.MAX_IMAGE_PIXELS = 110000000
 EXTRACTED_COMMON_IMAGES_PATH = pc.data_root_dir.joinpath("extracted_common_images")
 
 
@@ -78,6 +79,9 @@ def rescale_image_for_imagenet(
     class_id: str, image_path: str, new_image_size: int = 256
 ) -> np.array:
     image_path = Path(image_path)
+    if not image_path.exists():
+        logging.error(f"ERROR: Missing Image: {image_path}")
+        return (0, 0, 0, "")
     image = Image.open(image_path)
     if image.format == "PNG":
         if image.mode != "RGBA":
