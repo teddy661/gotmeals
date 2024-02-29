@@ -1,12 +1,14 @@
-import polars as pl
-from pathlib import Path
 import multiprocessing as mp
-from platformdirs import user_documents_dir
 import platform
+from pathlib import Path
+
+import polars as pl
+from platformdirs import user_documents_dir
 
 SAMPLES_PER_CLASS = 220
 RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
+
 
 class ProjectConfig:
     def __init__(self):
@@ -38,16 +40,17 @@ def get_sampled_data(raw_train_df: pl.DataFrame) -> pl.DataFrame:
     )
     return train_equal_sample_df.sample(shuffle=True, fraction=1)
 
+
 def main():
-    #Blindly oversample the data to ensure consistent class distribution
-    #Load the data
+    # Blindly oversample the data to ensure consistent class distribution
+    # Load the data
     pc = ProjectConfig()
     source_data = pc.data_root_dir.joinpath("extracted_common_images.parquet")
-    sampled_data = get_sampled_data(pl.read_parquet(source_data)
+    sampled_data = get_sampled_data(pl.read_parquet(source_data))
     target_dir = pc.data_root_dir.joinpath("sampled_data")
     if not target_dir.exists():
         target_dir.mkdir()
-    
+
 
 if __name__ == "__main__":
     mp.freeze_support()
