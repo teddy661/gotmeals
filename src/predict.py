@@ -26,9 +26,9 @@ print(f"BEGIN loading Model: {model_path}")
 model = keras.models.load_model(model_path)
 model.trainable = False
 print(f"END loading Model {model_path}")
-data_dir = pc.data_root_dir.joinpath("extracted_common_images")
+data_dir = pc.data_root_dir.joinpath("training_data")
 image_to_predict_path = data_dir.joinpath(
-    "pear/9a20f7ce133f1449447e239144d481fceea50938cff92c42fc28d2d9d9de6076.png"
+    "mushroom/fa0f0384f8c20eadcf8bd25b69d12073a5d48c91271077bc58a722f2dc9198b4.png"
 )
 class_list = joblib.load("class_list.lzma")
 
