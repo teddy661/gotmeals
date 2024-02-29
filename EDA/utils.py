@@ -58,11 +58,16 @@ def convert_numpy_to_bytesio(image: np.array) -> bytes:
     # np.save(mem_file, image)
     return mem_file.getvalue()
 
+
 def update_path(path: Path, root_dir: Path) -> str:
     return str(root_dir.joinpath(path).resolve())
 
 
 def read_image(image_path: Path) -> tuple:
+    image_path = Path(image_path)
+    if not image_path.exists():
+        print(f"Missing File {image_path}")
+        return (0, 0, 0)
     image = Image.open(image_path)
     if image.format == "PNG":
         if image.mode != "RGBA":
@@ -81,6 +86,7 @@ def read_image(image_path: Path) -> tuple:
         image_height,
         image_resolution,
     )
+
 
 def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
     """
@@ -105,6 +111,7 @@ def read_image_wrapper(df: pl.DataFrame) -> pl.DataFrame:
         .alias("New_Cols")
     ).unnest("New_Cols")
     return df
+
 
 class ProjectConfig:
     def __init__(self):
