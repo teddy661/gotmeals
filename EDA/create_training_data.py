@@ -16,7 +16,8 @@ from utils import *
 
 pc = ProjectConfig()
 Image.MAX_IMAGE_PIXELS = 110000000
-EXTRACTED_COMMON_IMAGES_PATH = pc.data_root_dir.joinpath("extracted_common_images")
+target_name = "training_data"
+TRAINING_DATA_PATH = pc.data_root_dir.joinpath(target_name)
 
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
@@ -94,7 +95,7 @@ def rescale_image_for_imagenet(
     image_data = np.asarray(image, dtype=np.float64) / 255.0
     _, _, rs_image = rescale_image(image_data, new_image_size=new_image_size)
     cropped_image = center_crop(rs_image, 224, 224)
-    image_target_dir = EXTRACTED_COMMON_IMAGES_PATH.joinpath(class_id)
+    image_target_dir = TRAINING_DATA_PATH.joinpath(class_id)
     if not image_target_dir.exists():
         image_target_dir.mkdir(parents=True)
 
@@ -152,14 +153,14 @@ def main():
         "common_ingredients_images_corrected.parquet"
     )
 
-    if not EXTRACTED_COMMON_IMAGES_PATH.exists():
-        EXTRACTED_COMMON_IMAGES_PATH.mkdir(parents=True)
+    if not TRAINING_DATA_PATH.exists():
+        TRAINING_DATA_PATH.mkdir(parents=True)
     logging.info(f"Reading {common_dataset_path}")
     df = pl.read_parquet(common_dataset_path)
     logging.info(f"Scaling images")
     df = parallelize_dataframe(df, scale_image_wrapper, 8)
 
-    scaled_image_parquet = pc.data_root_dir.joinpath("extracted_common_images.parquet")
+    scaled_image_parquet = pc.data_root_dir.joinpath(target_name + ".parquet")
     df.write_parquet(scaled_image_parquet, compression="lz4")
     logging.info(f"Writing {scaled_image_parquet}")
 
