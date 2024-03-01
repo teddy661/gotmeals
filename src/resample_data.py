@@ -46,17 +46,18 @@ def duplicate_image(target_dir: str, class_id: str, image_path: str) -> pl.DataF
     image_dir = target_dir.joinpath(class_id)
     image_dir.mkdir(parents=True, exist_ok=True)
     target_image_path = image_dir.joinpath(
-        src_image_base_name + random_append + src_image_suffix
+        src_image_base_name + "_" + random_append + src_image_suffix
     )
     shutil.copy(src_image_path, target_image_path)
+    #print(f"Copying {src_image_path} to {target_image_path}")
     return str(target_image_path)
 
 
 def create_sampled_data(df: pl.DataFrame) -> pl.DataFrame:
     df = df.with_columns(
-        pl.struct(["target_dir", "ClassId", "Image_Path"])
+        pl.struct(["target_dir", "ClassId", "Scaled_Image_Path"])
         .map_elements(
-            lambda x: duplicate_image(x["target_dir"], x["ClassId"], x["Image_Path"]),
+            lambda x: duplicate_image(x["target_dir"], x["ClassId"], x["Scaled_Image_Path"]),
         )
         .alias("Sampled_Image_Path")
     )
