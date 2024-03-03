@@ -20,9 +20,7 @@ from utils import *
 
 
 def download_images(url_list: list, class_dir: Path) -> list:
-    user_agent = {
-        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-    }
+    user_agent = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
     http = urllib3.PoolManager(8, headers=user_agent)
     if not class_dir.exists():
         class_dir.mkdir(parents=True)
@@ -32,7 +30,7 @@ def download_images(url_list: list, class_dir: Path) -> list:
         if not validators.url(url):
             image_path = None
         else:
-            time.sleep(random.uniform(0.2, 1.54))
+            time.sleep(random.uniform(0.01, 0.5))
             response = http.request("GET", url)
             if response.status != 200:
                 print(f"Failed to download image {i} from {url}")
@@ -70,9 +68,7 @@ def main():
         search_strings = c["SearchStrings"]
         print(f"Processing class     :\t{class_id}")
         driver = webdriver.Chrome(
-            service=ChromeService(
-                ChromeDriverManager().install(), options=chrome_options
-            )
+            service=ChromeService(ChromeDriverManager().install(), options=chrome_options)
         )
         for search_string in search_strings:
             print(f"\tSearch String:\t{search_string}")
@@ -149,6 +145,7 @@ def main():
             )
             query_results.append(search_results_df)
         driver.close()
+            
 
     all_results = pl.concat(query_results)
     num_cpus = psutil.cpu_count(logical=False)
