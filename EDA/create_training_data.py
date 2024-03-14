@@ -11,7 +11,7 @@ import numpy as np
 import polars as pl
 import psutil
 from blake3 import blake3
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from skimage.transform import rescale, rotate
 
 from utils import *
@@ -85,7 +85,11 @@ def rescale_image_for_imagenet(
     if not image_path.exists():
         logging.error(f"ERROR: Missing Image: {image_path}")
         return (0, 0, 0, "")
-    image = Image.open(image_path)
+    try:
+        image = Image.open(image_path)
+    except PIL.UnidentifiedImageError:
+        logging.error(f"ERROR: Unidentified Image: {image_path}")
+        return (0, 0, 0, "")
     if image.format == "PNG":
         if image.mode != "RGBA":
             image = image.convert("RGBA")
