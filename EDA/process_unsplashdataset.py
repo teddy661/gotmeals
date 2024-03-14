@@ -23,6 +23,10 @@ CLASSIFICATION_ROOT = pc.project_root_dir.joinpath("EDA/Image_Scraping")
 
 
 def main():
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+        level=logging.INFO,
+    )
     parser = argparse.ArgumentParser(description="Parse Unsplash dataset")
     parser.add_argument(
         "-f",
@@ -51,17 +55,13 @@ def main():
     train_df = pl.read_csv(
         CLASSIFICATION_ROOT.joinpath("Unsplash_Attributes_2.csv"), has_header=True
     )
-    train_df = train_df.rename(
-            {"Image_Labels_jpg": "ImageId",
-             "Labels": "ClassId"}
-        
-    )
+    train_df = train_df.rename({"Image_Labels_jpg": "ImageId", "Labels": "ClassId"})
     train_df = train_df.drop(["Image_Labels"])
     train_df = train_df.with_columns(
         pl.col("ImageId")
         .map_elements(lambda x: update_path(x, TRAIN_IMG_DIR))
         .alias("Image_Path")
-    )    
+    )
     # df = df.filter(pl.col("In_Top_100") == 1)  # Only include top 100 ingredients This column was removed from the csv
     df = parallelize_dataframe(train_df, read_image_wrapper, num_cpus)
     df = df.select(
@@ -72,8 +72,16 @@ def main():
         pl.col("Height"),
         pl.col("Resolution"),
     )
-    print(df.head())
-    df.write_parquet(target_parquet_file, compression="lz4", compression_level=3)
+
+    logging.info("Remove rows with missing images")
+    mask = df["Image_Path"].map_elements(lambda f: Path(f).exists())
+    final_filtered_df = df.filter(mask)
+    removed_rows = df.filter(~mask)
+    print(removed_rows)
+    logging.info("Writing parquet file")
+    final_filtered_df.write_parquet(
+        target_parquet_file, compression="lz4", compression_level=3
+    )
 
 
 if __name__ == "__main__":
