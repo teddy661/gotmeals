@@ -185,8 +185,8 @@ def main():
     logging.info(f"Scaling images")
 
     num_cpus = psutil.cpu_count(logical=False)
-    if num_cpus > 6:
-        num_cpus = 6
+    if num_cpus > 8:
+        num_cpus = 8
     df = parallelize_dataframe(df, scale_image_wrapper, num_cpus)
 
     df.write_parquet(training_data_parquet_file, compression="lz4")
