@@ -87,7 +87,7 @@ def rescale_image_for_imagenet(
         return (0, 0, 0, "")
     try:
         image = Image.open(image_path)
-    except PIL.UnidentifiedImageError:
+    except UnidentifiedImageError:
         logging.error(f"ERROR: Unidentified Image: {image_path}")
         return (0, 0, 0, "")
     if image.format == "PNG":
