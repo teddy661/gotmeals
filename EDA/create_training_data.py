@@ -1,6 +1,8 @@
+import argparse
 import logging
 import multiprocessing as mp
 import platform
+import shutil
 import sys
 from io import BytesIO
 from pathlib import Path
@@ -149,12 +151,35 @@ def main():
         level=logging.INFO,
     )
 
+    parser = argparse.ArgumentParser(
+        description="Parse merged dataset into training data."
+    )
+    parser.add_argument(
+        "-f",
+        dest="force",
+        help="force remove existing training data directory and recreate it",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    prog_name = parser.prog
+
     common_dataset_path = pc.data_root_dir.joinpath(
         "merged_dataset_corrected_classes.parquet"
     )
+    training_data_parquet_file = pc.data_root_dir.joinpath(target_name + ".parquet")
 
     if not TRAINING_DATA_PATH.exists():
         TRAINING_DATA_PATH.mkdir(parents=True)
+        if training_data_parquet_file.exists():
+            training_data_parquet_file.unlink(missing_ok=True)
+    elif args.force:
+        logging.info(f"Removing {TRAINING_DATA_PATH} and parquet file")
+        shutil.rmtree(TRAINING_DATA_PATH)
+        training_data_parquet_file.unlink(missing_ok=True)
+    elif not args.force:
+        logging.error(f"Directory {TRAINING_DATA_PATH} already exists")
+        exit(1)
+
     logging.info(f"Reading {common_dataset_path}")
     df = pl.read_parquet(common_dataset_path)
     logging.info(f"Scaling images")
@@ -164,9 +189,8 @@ def main():
         num_cpus = 6
     df = parallelize_dataframe(df, scale_image_wrapper, num_cpus)
 
-    scaled_image_parquet = pc.data_root_dir.joinpath(target_name + ".parquet")
-    df.write_parquet(scaled_image_parquet, compression="lz4")
-    logging.info(f"Writing {scaled_image_parquet}")
+    df.write_parquet(training_data_parquet_file, compression="lz4")
+    logging.info(f"Writing {training_data_parquet_file}")
 
 
 if __name__ == "__main__":
