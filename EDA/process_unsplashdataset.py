@@ -49,15 +49,21 @@ def main():
         num_cpus = 8
 
     train_df = pl.read_csv(
-        CLASSIFICATION_ROOT.joinpath("Ingredient_Labels.csv"), has_header=True
+        CLASSIFICATION_ROOT.joinpath("Unsplash_Attributes_2.csv"), has_header=True
     )
-    df = train_df.with_columns(
+    train_df = train_df.rename(
+            {"Image_Labels_jpg": "ImageId",
+             "Labels": "ClassId"}
+        
+    )
+    train_df = train_df.drop(["Image_Labels"])
+    train_df = train_df.with_columns(
         pl.col("ImageId")
         .map_elements(lambda x: update_path(x, TRAIN_IMG_DIR))
         .alias("Image_Path")
-    )
-    df = df.filter(pl.col("In_Top_100") == 1)  # Only include top 100 ingredients
-    df = parallelize_dataframe(df, read_image_wrapper, num_cpus)
+    )    
+    # df = df.filter(pl.col("In_Top_100") == 1)  # Only include top 100 ingredients This column was removed from the csv
+    df = parallelize_dataframe(train_df, read_image_wrapper, num_cpus)
     df = df.select(
         pl.col("ClassId"),
         pl.col("ImageId"),
