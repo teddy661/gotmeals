@@ -35,7 +35,7 @@ def main():
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 20
-    LEARNING_RATE = 0.0001  # Default is 0.001
+    LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
     MODEL_DIR = Path("./model_saves").resolve()
     MODEL_NAME = "efficientnet_v2m"
 
