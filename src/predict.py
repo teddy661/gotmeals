@@ -16,7 +16,7 @@ from platformdirs import user_documents_dir
 from utils import *
 
 pc = ProjectConfig()
-MODEL_DIR = Path("./model_saves").resolve()
+MODEL_DIR = Path("./model_fine_tuned_saves").resolve()
 MODEL_NAME = "efficientnet_v2m"
 MODEL_PATH = MODEL_DIR.joinpath(MODEL_NAME + ".h5")
 model_path = pc.project_root_dir.joinpath(MODEL_PATH)
@@ -27,8 +27,9 @@ model = keras.models.load_model(model_path)
 model.trainable = False
 print(f"END loading Model {model_path}")
 data_dir = pc.data_root_dir.joinpath("training_data")
-image_to_predict_path = data_dir.joinpath(
-    "mushroom/fa0f0384f8c20eadcf8bd25b69d12073a5d48c91271077bc58a722f2dc9198b4.png"
+
+image_to_predict_path = Path(
+    "celery.png"
 )
 class_list = joblib.load("class_list.lzma")
 
