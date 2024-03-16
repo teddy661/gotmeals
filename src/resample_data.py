@@ -12,7 +12,7 @@ from platformdirs import user_documents_dir
 
 from utils import *
 
-SAMPLES_PER_CLASS = 220
+SAMPLES_PER_CLASS = 120
 RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
 
