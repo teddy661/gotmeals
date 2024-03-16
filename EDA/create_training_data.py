@@ -186,6 +186,10 @@ def main():
 
     logging.info(f"Reading {common_dataset_path}")
     df = pl.read_parquet(common_dataset_path)
+    # Certain datasets have huge images that clog up a few threads
+    # shuffle the dataframe to hopefully distribute the load better
+    # and avoid a few processes getting stuck on huge images
+    df = df.sample(fraction=1, seed=142, with_replacement=False, shuffle=True)
     logging.info(f"Scaling images")
 
     num_cpus = psutil.cpu_count(logical=False)
