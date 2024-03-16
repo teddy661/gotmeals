@@ -12,7 +12,7 @@ from platformdirs import user_documents_dir
 
 from utils import *
 
-SAMPLES_PER_CLASS = 120
+SAMPLES_PER_CLASS = 220
 RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
 
@@ -126,12 +126,14 @@ def main():
     elif args.force:
         logging.info(f"Removing {TARGET_DIR} and parquet file")
         shutil.rmtree(TARGET_DIR)
+        TARGET_DIR.mkdir(parents=True)
         TARGET_PARQUET.unlink(missing_ok=True)
     elif not args.force:
-        logging.error(f"Directory {TARGET_DIR} already exists")
+        logging.error(
+            f"Directory {TARGET_DIR} already exists. Use -f to remove / recreate it."
+        )
         exit(1)
 
-    TARGET_DIR.mkdir(parents=True)
     if not TARGET_DIR.exists():
         logging.error(f"Directory {TARGET_DIR} does not exist and it should")
         exit(2)
