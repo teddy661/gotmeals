@@ -104,9 +104,9 @@ def main():
     x = BatchNormalization()(x)
     x = Dropout(0.4)(x)
 
-    x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.5)(x)
+    # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    # x = BatchNormalization()(x)
+    # x = Dropout(0.5)(x)
 
     predictions = Dense(NUM_CLASSES, activation="softmax")(x)
 
