@@ -8,23 +8,25 @@ from pathlib import Path
 
 import numpy as np
 import polars as pl
-from platformdirs import user_documents_dir
 
 from utils import *
 
 IMAGE_COUNT_CUTOFF = 27
 SAMPLES_PER_CLASS = 120
-RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
 
 
-def get_sampled_data(raw_train_df: pl.DataFrame) -> pl.DataFrame:
+def get_sampled_data(raw_train_df: pl.DataFrame, is_test_data: bool) -> pl.DataFrame:
     """
     Oversample our data to a median class size of SAMPLES_PER_CLASS samples if the class has more than SAMPLES_PER_CLASS
     samples, then sample without replacement if it has less, sample with replacement.
     :param df: The dataframe to sample
     :return: The sampled dataframe
     """
+    if is_test_data:
+        RANDOM_SEED = 242
+    else:
+        RANDOM_SEED = 42
     pl.set_random_seed(RANDOM_SEED)
     train_equal_sample_df = pl.concat(
         [
@@ -64,6 +66,7 @@ def duplicate_image(target_dir: str, class_id: str, image_path: str) -> pl.DataF
 
 
 def create_sampled_data(df: pl.DataFrame) -> pl.DataFrame:
+    """ """
     df = df.with_columns(
         pl.struct(["target_dir", "ClassId", "Scaled_Image_Path"])
         .map_elements(
@@ -77,18 +80,25 @@ def create_sampled_data(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def main():
+    """ """
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         level=logging.INFO,
     )
 
     parser = argparse.ArgumentParser(
-        description="Parse merged dataset into training data."
+        description="Parse merged dataset into training or test data."
     )
     parser.add_argument(
         "-f",
         dest="force",
         help="force remove existing training data directory and recreate it",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-t",
+        dest="test",
+        help="extract testing data instead of training data",
         action="store_true",
     )
     args = parser.parse_args()
@@ -97,14 +107,20 @@ def main():
     # we can be smarter later on
     # Load the data
     pc = ProjectConfig()
-    target_name = "sampled_training_data"
-    TARGET_DIR = pc.data_root_dir.joinpath(target_name)
-    TARGET_PARQUET = pc.data_root_dir.joinpath(target_name + ".parquet")
     SOURCE_DATA = pc.data_root_dir.joinpath("training_data.parquet")
 
     if not SOURCE_DATA.exists():
         raise FileNotFoundError(f"Source data {SOURCE_DATA} does not exist")
         exit(1)
+
+    if args.test:
+        target_name = "sampled_testing_data"
+        is_test_data = True
+    else:
+        target_name = "sampled_training_data"
+        is_test_data = False
+    TARGET_DIR = pc.data_root_dir.joinpath(target_name)
+    TARGET_PARQUET = pc.data_root_dir.joinpath(target_name + ".parquet")
 
     # Read data and drop any images that we're not scaled
     source_df = pl.read_parquet(SOURCE_DATA)
@@ -125,7 +141,7 @@ def main():
     mask = filtered_source_df["ClassId"].is_in(included_classes)
     filtered_source_df = filtered_source_df.filter(mask)
 
-    sampled_data = get_sampled_data(filtered_source_df)
+    sampled_data = get_sampled_data(filtered_source_df, is_test_data)
     sampled_data = sampled_data.with_columns(
         pl.lit(str(TARGET_DIR)).alias("target_dir")
     )
