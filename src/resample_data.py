@@ -123,7 +123,7 @@ def main():
         exit(1)
 
     if args.test:
-        target_name = "sampled_testing_data"
+        target_name = "sampled_test_data"
         is_test_data = True
     else:
         target_name = "sampled_training_data"
