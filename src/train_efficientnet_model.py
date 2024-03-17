@@ -89,8 +89,25 @@ def main():
     # Modify the output layer
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    x = Dropout(0.2)(x)
-    x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    # x = Dropout(0.2)(x)
+    # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+
+    x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.3)(x)
+
+    x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.3)(x)
+
+    x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.4)(x)
+
+    x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.5)(x)
+
     predictions = Dense(NUM_CLASSES, activation="softmax")(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
