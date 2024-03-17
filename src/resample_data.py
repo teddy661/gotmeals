@@ -12,6 +12,7 @@ from platformdirs import user_documents_dir
 
 from utils import *
 
+IMAGE_COUNT_CUTOFF = 27
 SAMPLES_PER_CLASS = 120
 RANDOM_SEED = 42
 TRAIN_PERCENTAGE = 0.8
@@ -113,6 +114,16 @@ def main():
     logging.warning(
         f"Filtered {original_count - filtered_count} rows with no scaled image"
     )
+
+    counts = (
+        filtered_source_df.group_by("ClassId")
+        .agg(pl.count("ClassId").alias("count"))
+        .sort("count", reverse=True)
+    )
+
+    included_classes = counts.filter(pl.col("count") >= IMAGE_COUNT_CUTOFF)["ClassId"]
+    mask = filtered_source_df["ClassId"].is_in(included_classes)
+    filtered_source_df = filtered_source_df.filter(mask)
 
     sampled_data = get_sampled_data(filtered_source_df)
     sampled_data = sampled_data.with_columns(
