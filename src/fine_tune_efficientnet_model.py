@@ -74,7 +74,11 @@ def main():
     model = tf.keras.models.load_model("model_saves/efficientnet_v2m.h5")
     for layer in model.layers:
         layer.trainable = True
+        if isinstance(layer, BatchNormalization):
+            layer.trainable = False
 
+    model.summary(show_trainable=True)
+    exit()
     optimizer = Adam(learning_rate=LEARNING_RATE)
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
