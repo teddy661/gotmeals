@@ -78,7 +78,6 @@ def main():
             layer.trainable = False
 
     model.summary(show_trainable=True)
-    exit()
     optimizer = Adam(learning_rate=LEARNING_RATE)
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
