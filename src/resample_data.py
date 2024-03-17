@@ -143,7 +143,7 @@ def main():
     counts = (
         filtered_source_df.group_by("ClassId")
         .agg(pl.count("ClassId").alias("count"))
-        .sort("count", reverse=True)
+        .sort("count", descending=True)
     )
 
     included_classes = counts.filter(pl.col("count") >= IMAGE_COUNT_CUTOFF)["ClassId"]
