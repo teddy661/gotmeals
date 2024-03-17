@@ -90,16 +90,11 @@ def main():
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = Dropout(0.2)(x)
-    # x = BatchNormalization()(x)
     x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = Dense(128, activation='relu', kernel_initializer=initializers.HeNormal())(x)
-    # x = Dense(64, activation='relu', kernel_initializer=initializers.HeNormal())(x)
     predictions = Dense(NUM_CLASSES, activation="softmax")(x)
 
     model = Model(inputs=base_model.input, outputs=predictions)
-
+    model.summary(show_trainable=True, line_length=150)
     optimizer = Adam(learning_rate=LEARNING_RATE)
     model.compile(
         optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
