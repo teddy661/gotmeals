@@ -12,13 +12,14 @@ import polars as pl
 from utils import *
 
 IMAGE_COUNT_CUTOFF = 27
-SAMPLES_PER_CLASS = 120
 TRAIN_PERCENTAGE = 0.8
 
 
-def get_sampled_data(raw_train_df: pl.DataFrame, is_test_data: bool) -> pl.DataFrame:
+def get_sampled_data(
+    raw_train_df: pl.DataFrame, samples_per_class: int, is_test_data: bool
+) -> pl.DataFrame:
     """
-    Oversample our data to a median class size of SAMPLES_PER_CLASS samples if the class has more than SAMPLES_PER_CLASS
+    Oversample our data to a median class size of samples_per_class samples if the class has more than SAMPLES_PER_CLASS
     samples, then sample without replacement if it has less, sample with replacement.
     :param df: The dataframe to sample
     :return: The sampled dataframe
@@ -31,9 +32,9 @@ def get_sampled_data(raw_train_df: pl.DataFrame, is_test_data: bool) -> pl.DataF
     train_equal_sample_df = pl.concat(
         [
             (
-                x.sample(SAMPLES_PER_CLASS, with_replacement=True, shuffle=False)
-                if x.height <= SAMPLES_PER_CLASS
-                else x.sample(SAMPLES_PER_CLASS, with_replacement=False, shuffle=False)
+                x.sample(samples_per_class, with_replacement=True, shuffle=False)
+                if x.height <= samples_per_class
+                else x.sample(samples_per_class, with_replacement=False, shuffle=False)
             )
             for x in raw_train_df.partition_by("ClassId")
         ]
@@ -101,8 +102,16 @@ def main():
         help="extract testing data instead of training data",
         action="store_true",
     )
+    parser.add_argument(
+        "-n",
+        dest="samples_per_class",
+        help="number of images sampled per class",
+        type=int,
+        default=120,
+    )
     args = parser.parse_args()
     prog_name = parser.prog
+    samples_per_class = args.samples_per_class
     # Blindly oversample the data to ensure consistent class distribution
     # we can be smarter later on
     # Load the data
@@ -141,7 +150,7 @@ def main():
     mask = filtered_source_df["ClassId"].is_in(included_classes)
     filtered_source_df = filtered_source_df.filter(mask)
 
-    sampled_data = get_sampled_data(filtered_source_df, is_test_data)
+    sampled_data = get_sampled_data(filtered_source_df, samples_per_class, is_test_data)
     sampled_data = sampled_data.with_columns(
         pl.lit(str(TARGET_DIR)).alias("target_dir")
     )
