@@ -56,6 +56,25 @@ def main():
         validation_split=0.2,
     )
 
+    # Create a new ImageDataGenerator instance for validation data without augmentation
+    # but with the necessary preprocessing.
+  #  validation_datagen = ImageDataGenerator(
+  #      preprocessing_function=preprocess_input,
+  #      # No augmentation, only preprocessing
+  #      validation_split=0.2  # If you're using the same dataset for splitting
+  #  )
+
+    # Now, use this 'validation_datagen' to create the validation generator
+ #   validation_generator = validation_datagen.flow_from_directory(
+  #      training_dir_path,  # Assuming this is where your validation data is
+   #     target_size=(224, 224),
+   #     batch_size=BATCH_SIZE,
+   #     class_mode="sparse",
+   #     subset="validation",  # Make sure this aligns with how you've split your dataset
+   #     shuffle=True,
+   #     seed=42
+   # )
+
     train_generator = train_datagen.flow_from_directory(
         training_dir_path,
         target_size=(224, 224),
