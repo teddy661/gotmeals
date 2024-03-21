@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 
@@ -43,7 +43,8 @@ if class_list.exists():
 
 app = FastAPI()
 
-
+class TimeStamp(BaseModel, extra="forbid"):
+    timestamp: datetime = None
 class PredictResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     image_hash: str
@@ -61,8 +62,8 @@ async def root():
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 async def return_health():
-    """Return 200. Do nothing else."""
-    return {"health": "ok"}
+    """Return 200 and the current ISO8601 Timestamp in UTC since we don't query the client for a TZ"""
+    return TimeStamp(timestamp=datetime.now(timezone.utc).isoformat())
 
 
 @app.get("/version", status_code=status.HTTP_200_OK)
