@@ -43,6 +43,8 @@ def main():
         if i.is_dir():
             NUM_CLASSES += 1
 
+    validation_split = 0.2
+    flow_from_directory_seed = 42
     train_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,
         # rescale=1.0 / 255, # DO NOT TURN THIS ON FOR EFFICIENT NET! BAD THINGS
@@ -53,27 +55,17 @@ def main():
         zoom_range=0.2,  # Random zoom range
         horizontal_flip=True,  # Enable random horizontal flips
         fill_mode="nearest",  # Strategy for filling in newly created pixels
-        validation_split=0.2,
+        validation_split=validation_split,
     )
 
     # Create a new ImageDataGenerator instance for validation data without augmentation
     # but with the necessary preprocessing.
-  #  validation_datagen = ImageDataGenerator(
-  #      preprocessing_function=preprocess_input,
-  #      # No augmentation, only preprocessing
-  #      validation_split=0.2  # If you're using the same dataset for splitting
-  #  )
+    validation_datagen = ImageDataGenerator(
+       preprocessing_function=preprocess_input,
+       # No augmentation, only preprocessing
+       validation_split=validation_split  # Needs to match train_datagen's validation_split
+   )
 
-    # Now, use this 'validation_datagen' to create the validation generator
- #   validation_generator = validation_datagen.flow_from_directory(
-  #      training_dir_path,  # Assuming this is where your validation data is
-   #     target_size=(224, 224),
-   #     batch_size=BATCH_SIZE,
-   #     class_mode="sparse",
-   #     subset="validation",  # Make sure this aligns with how you've split your dataset
-   #     shuffle=True,
-   #     seed=42
-   # )
 
     train_generator = train_datagen.flow_from_directory(
         training_dir_path,
@@ -82,18 +74,19 @@ def main():
         class_mode="sparse",
         subset="training",
         shuffle=True,
-        seed=42,
+        seed=flow_from_directory_seed,
     )
 
-    validation_generator = train_datagen.flow_from_directory(
-        training_dir_path,
-        target_size=(224, 224),
-        batch_size=BATCH_SIZE,
-        class_mode="sparse",
-        subset="validation",
-        shuffle=True,
-        seed=42,
-    )
+    validation_generator = validation_datagen.flow_from_directory(
+       training_dir_path,
+       target_size=(224, 224),
+       batch_size=BATCH_SIZE,
+       class_mode="sparse",
+       subset="validation",
+       shuffle=True,
+       seed=flow_from_directory_seed,
+   )
+
 
     class_list = list(train_generator.class_indices.keys())
     joblib.dump(
