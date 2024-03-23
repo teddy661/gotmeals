@@ -2,10 +2,10 @@
 FROM python:3.9-slim
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /flask_app
 
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY flask_app/ /flask_app
 
 # Install any needed dependencies specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
@@ -14,7 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8000
 
 # Define environment variable
-ENV NAME World
 
 # Run minikube_flask.py when the container launches
 CMD ["python", "minikube_flask.py"]
