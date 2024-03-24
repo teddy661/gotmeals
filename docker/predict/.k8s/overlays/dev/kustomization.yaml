@@ -1,0 +1,12 @@
+---
+namespace: edbrown
+bases:
+  - ../../bases
+resources:
+  - namespace.yaml
+patches:
+  - path: patch-deployment-lab4.yaml
+    target:
+      kind: Deployment
+patchesStrategicMerge:
+  - service-lab4-loadbalancer.yaml

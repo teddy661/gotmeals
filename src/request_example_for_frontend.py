@@ -1,10 +1,11 @@
+import json
 from pathlib import Path
 
 import requests
 
-PROTOCOL = "http"
-HOST = "localhost"
-PORT = 8000
+PROTOCOL = "https"
+HOST = "edbrown.mids255.com"
+PORT = 443
 endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
 
 file_to_predict = Path("celery.png")
@@ -16,4 +17,4 @@ files = {"file": open(file_to_predict, "rb")}
 
 response = requests.post(endpoint, files=files, headers=headers)
 print(response.status_code)
-print(response.json())
+print(json.dumps(response.json()))

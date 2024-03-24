@@ -1,0 +1,27 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: lab4
+spec:
+  hosts:
+    - edbrown.mids255.com
+  gateways:
+    - istio-ingress/edbrown-gateway
+  http:
+    - match:
+        - uri:
+            exact: /predict
+        - uri:
+            prefix: /health
+        - uri:
+            prefix: /docs
+        - uri:
+            prefix: /openapi.json
+        - uri:
+            prefix: /version
+      route:
+        - destination:
+            host: lab4
+            port:
+              number: 8888

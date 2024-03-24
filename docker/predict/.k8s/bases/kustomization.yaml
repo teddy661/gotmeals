@@ -1,0 +1,6 @@
+---
+namespace: edbrown
+resources:
+  - deployment-lab4.yaml
+  - service-lab4.yaml
+
