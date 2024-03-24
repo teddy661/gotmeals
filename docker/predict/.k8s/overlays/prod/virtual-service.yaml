@@ -25,9 +25,9 @@ spec:
             host: lab4
             port:
               number: 8888
-    - match:
-        - url:
-            exact: /es
+    - match: 
+        - uri:
+            prefix: /es
       route:
         - destination:
             host: elasticsearch

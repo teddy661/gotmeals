@@ -8,15 +8,15 @@ spec:
     spec:
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+          image: w255mids.azurecr.io/edbrown/elasticsearch:8.12.2
           resources:
             requests:
               cpu: 1000m
               memory: 2048Mi
             limits:
-              cpu: 8000m
-              memory: 8192Mi
-          imagePullPolicy: IfNotPresent
+              cpu: 2100m
+              memory: 2048Mi
+          imagePullPolicy: Always
           ports:
             - containerPort: 9200
           env:
