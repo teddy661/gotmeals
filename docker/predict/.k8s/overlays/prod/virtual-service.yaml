@@ -25,3 +25,11 @@ spec:
             host: lab4
             port:
               number: 8888
+    - match:
+        - url:
+            exact: /es
+      route:
+        - destination:
+            host: elasticsearch
+            port:
+              number: 9200

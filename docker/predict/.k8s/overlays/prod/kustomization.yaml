@@ -9,3 +9,7 @@ patches:
     target:
       kind: Deployment
       name: lab4
+  - path: patch-deployment-elasticsearch.yaml
+    target:
+      kind: Deployment
+      name: elasticsearch
