@@ -13,7 +13,6 @@ SCRIPT_DIR=$(realpath ${RAW_SCRIPT_DIR})
 cd ${SCRIPT_DIR}
 TOP_LAB_DIR=$(pwd | awk -F "/" '{print $NF}')
 HOSTNAME="127.0.0.1"
-HOST_PORT="8888"
 PROG_NAME=$(basename ${0})
 
 display_usage()
@@ -128,7 +127,7 @@ until [ \
 		exit 5
 	fi
 	done
-echo "Elasticearch Tunnel Connected"
+echo "Elasticsearch Tunnel Connected"
 echo -e ""
 
 echo "Waiting for predict Tunnel to Connect"
@@ -143,7 +142,7 @@ until [ \
 		exit 5
 	fi
 	done
-echo "Lab4 Tunnel Connected"
+echo "Predict Tunnel Connected"
 echo -e ""
 
 
