@@ -10,3 +10,4 @@ patches:
       kind: Deployment
 patchesStrategicMerge:
   - service-lab4-loadbalancer.yaml
+  - service-elasticsearch-loadbalancer.yaml

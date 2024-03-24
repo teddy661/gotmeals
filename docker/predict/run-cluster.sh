@@ -102,7 +102,7 @@ fi
 
 docker context use default 
 
-minikube start --kubernetes-version=v1.25.4 --memory=16384 --cpus=8
+minikube start --kubernetes-version=v1.25.4 --memory=32768 --cpus=8
 
 eval $(minikube docker-env)
 
@@ -114,9 +114,9 @@ echo -e "${PROG_NAME}: INFO: Start Minikube Tunnel\n"
 minikube tunnel &
 MK_TUNNEL_PID=$!
 
-echo "Waiting for Tunnel to Connect"
+echo "Waiting for Elasticsearch Tunnel to Connect"
 until [ \
-	"$(minikube kubectl -- -n edbrown get svc | grep LoadBalancer | awk '{print $4}')" \
+	"$(minikube kubectl -- -n edbrown get svc | grep LoadBalancer | grep elasticsearch | awk '{print $4}')" \
 	== "127.0.0.1" ]
 	do
 	sleep 1
@@ -126,8 +126,24 @@ until [ \
 		exit 5
 	fi
 	done
-echo "Tunnel Connected"
+echo "Elasticearch Tunnel Connected"
 echo -e ""
+
+echo "Waiting for predict Tunnel to Connect"
+until [ \
+	"$(minikube kubectl -- -n edbrown get svc | grep LoadBalancer | grep lab4 | awk '{print $4}')" \
+	== "127.0.0.1" ]
+	do
+	sleep 1
+	((i++))
+	if [[ ${i} == 10 ]]; then 
+		echo "Tunnel no detected after ${i} seconds. Giving up"
+		exit 5
+	fi
+	done
+echo "Lab4 Tunnel Connected"
+echo -e ""
+
 
 echo -e "================================================================================"
 echo -e "${PROG_NAME}: INFO: Wait for your API to become accessible\n"
