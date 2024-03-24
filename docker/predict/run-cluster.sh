@@ -107,7 +107,9 @@ minikube start --kubernetes-version=v1.25.4 --memory=32768 --cpus=8
 eval $(minikube docker-env)
 
 K8S_DEV_DIR="${SCRIPT_DIR}/.k8s/overlays/dev"
+
 minikube kubectl -- -n edbrown apply -k ${K8S_DEV_DIR}
+minikube kubectl -- -n edbrown create secret generic elasticsearch-pw --from-literal=ELASTIC_PASSWORD="jFoEj4A&5dnrCrQm"
 
 echo -e "================================================================================"
 echo -e "${PROG_NAME}: INFO: Start Minikube Tunnel\n"

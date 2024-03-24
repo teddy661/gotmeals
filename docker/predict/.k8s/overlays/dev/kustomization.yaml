@@ -8,6 +8,7 @@ patches:
   - path: patch-deployment-lab4.yaml
     target:
       kind: Deployment
+      name: lab4
 patchesStrategicMerge:
   - service-lab4-loadbalancer.yaml
   - service-elasticsearch-loadbalancer.yaml
