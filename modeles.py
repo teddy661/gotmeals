@@ -16,12 +16,20 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import pandas as pd
+from pathlib import Path 
 
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch(['https://edbrown.mids255.com/'], basic_auth=('elastic', 'jFoEj4A&5dnrCrQm'))
 
 #Load the data
 #UPDATE THE PATH FOR WHERE YOU ARE STORING THE RECIPE CSV
-df = (pd.read_csv("C:/Users/melha/Documents/ds210/project/recipe_dataset_cleaned_v4.csv", engine = 'python')
+csv_file = Path("C:/Users/melha/Documents/ds210/project/recipe_dataset_cleaned_v4.csv")
+if not csv_file.exists():
+    csv_file = Path("C:/Users/teddy/Documents/01-Berkeley/210/gotmeals/EDA/recipe_dataset_cleaned_v4.csv")
+if not csv_file.exists():
+    csv_file = Path("C:/Users/edbrown/Documents/01-Berkeley/210/gotmeals/EDA/recipe_dataset_cleaned_v4.csv")
+if not csv_file.exists():
+    raise FileNotFoundError("File not found")
+df = (pd.read_csv(csv_file, engine = 'python')
      .dropna()
      .sample(5000, random_state=42)
      .reset_index()

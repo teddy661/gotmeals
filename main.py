@@ -3,7 +3,6 @@
 ##2. Return the result
 ##3. Post the result to localhost/search
 
-from fastapi import FastAPI 
 from modeles import es
 
 ingredient1 = "beef"
@@ -48,21 +47,7 @@ query = {
 
 # Execute search with fallback
 result = search_recipes(es, query)
-
+print(result)
 
 #Pull in ingredients from Streamlit Front End
 #We need to be able to POST the response to Streamlit Front End
-
-
-app = FastAPI()
- 
-@app.get("/")
-async def root():
-    return {"Welcome to GotMeals?"}
-
-
-# We want to then return the resp.body from ElasticSearch
-@app.get("/search")
-@app.get("/search")
-async def search():
-    return result
