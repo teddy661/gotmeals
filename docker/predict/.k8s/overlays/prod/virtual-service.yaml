@@ -27,7 +27,7 @@ spec:
               number: 8888
     - match: 
         - uri:
-            prefix: /es
+            prefix: /
       route:
         - destination:
             host: elasticsearch
