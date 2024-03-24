@@ -1,2 +1,2 @@
 def get_app_version():
-	return {"git-version": "1ed89013bee21b459554dd9790dc5460dc694f30"}
+	return {"git-version": "aaa862519e3d566fb66b2ebb04dc20c2e3a419d1"}
