@@ -1,0 +1,95 @@
+import datetime
+import streamlit as st
+import requests 
+import os 
+import json
+from pathlib import Path
+
+PROTOCOL = "https"
+HOST = "edbrown.mids255.com"
+PORT = 443
+
+#streamlit run app.py
+
+st.set_page_config(page_title="Got Meals?",
+                   page_icon="🍔")
+
+#### SideBar ####
+
+st.sidebar.title("What is Got Meals?")
+st.sidebar.write("""
+Our mission is unwavering – to remove the hassle from your daily culinary journey and bring joy back to your kitchen. With a simple photo, we unlock the potential of your ingredients and deliver a personalized list of recipes tailored to your preferences.
+
+We created an easy to use and interactive application that allows your to take pictures of ingredients in the your fridge or cabinets and determines from those ingredients what recipes/meals you can make. This will provides real-time and instantaneous results and make cooking less of a hassle and more fun!
+
+**Accuracy :** **Limitless**
+                 
+**Model :** **EfficientNet**
+
+**Search supported by :** **ElasticSearch**
+
+**Dataset :** **`?`**
+""")
+
+st.sidebar.markdown("Created by **Ed Brown, Melissa Hartwick, Neha Jakkinpali, Melia Soque**")
+st.sidebar.markdown(body="""
+
+<th style="border:None"><a href="https://www.linkedin.com/in/jaydip-borad/" target="blank"><img align="center" src="https://bit.ly/3wCl82U" alt="jaydipborad" height="40" width="40" /></a></th>
+<th style="border:None"><a href="https://github.com/boradj" target="blank"><img align="center" src="https://bit.ly/githubjd" alt="boradj" height="40" width="40" /></a></th>
+
+""", unsafe_allow_html=True)
+
+
+#### Main Body ####
+
+def send_image_to_api(image_path, api_endpoint):
+    if not os.path.exists(image_path):
+        return {"error": "Image file does not exist."}
+    files = {"file": open(image_path, "rb")}
+    headers = {"accept": "application/json"}
+    response = requests.post(api_endpoint, files=files, headers=headers)
+    return response.json()
+
+def main():
+    st.title("Got Meals?🍔📷")
+    st.header("Identify recipes based on the foods you have!")
+    st.write("Add your food images below and select any allergies to generate a list of relevant recipes")
+    
+    uploaded_images = st.file_uploader(label="Upload a maximum of 5 items and a minimum of 1 item. Order the images you upload with the first image being the most important.",
+                        type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True)
+    
+    option = st.selectbox(
+    'Select from the dropdown list if any of these allergies apply to you',
+    ('None','Peanuts', 'Tree Nuts', 'All Nuts','Milk','Eggs', 'Fish', 'Shellfish', 'Wheat', 'Soybeans'))
+
+    st.write('You selected:', option)
+    
+    #Check if a file has been uploaded
+    if uploaded_images is not None: 
+        num_images = len(uploaded_images)
+        st.write(f"Number of Images Uploaded: {num_images}")
+
+        for i in range(num_images):
+            st.image(uploaded_images[i], caption = f"Uploaded Image {i+1}", use_column_width=True)
+    
+        #Submit button
+        if st.button('Submit'):
+            for i in range(num_images):
+                #Save the uploaded image to a temp directory 
+                temp_dir = "./temp"
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_image_path= os.path.join(temp_dir, uploaded_images[i].name)
+                with open(temp_image_path, "wb") as f:
+                    f.write(uploaded_images[i].getvalue())
+
+                #Send the image to the RESTAPI
+                api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
+                response = send_image_to_api(temp_image_path, api_endpoint)
+                st.write(f"Response for Image {i+1}: {response}")
+                
+
+            st.write("Images submitted to the REST API!")
+            #Then we need to handle the responses from the model 
+
+if __name__ == "__main__":
+    main()
