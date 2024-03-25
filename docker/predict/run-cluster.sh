@@ -148,5 +148,6 @@ echo -e ""
 
 echo -e "================================================================================"
 echo -e "${PROG_NAME}: INFO: Wait for your API to become accessible\n"
+minikube kubectl -- -n edbrown  rollout status -w deployment/elasticsearch
 minikube kubectl -- -n edbrown  rollout status -w deployment/lab4
 echo -e ""
