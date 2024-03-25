@@ -101,7 +101,7 @@ fi
 
 docker context use default 
 
-minikube start --kubernetes-version=v1.25.4 --memory=32768 --cpus=8
+minikube start --kubernetes-version=v1.27.3 --memory=32768 --cpus=8
 
 eval $(minikube docker-env)
 
