@@ -79,8 +79,8 @@ def rescale_image(image: np.ndarray, new_image_size: int = 64) -> tuple:
 def rescale_image_for_imagenet(image_path: str, new_image_size: int = 256) -> np.array:
     """
     Reads a file from the OS with PIL and center crops it to 256,256 then rescale
-    it to 224,224 for use with the ImageNet pre-trained models. Currently does not
-    work with HEIC images.
+    it to 224,224 for use with the ImageNet pre-trained models. Should now work with HEIC
+    images with the addition of pillow_heif.
     """
     image_path = Path(image_path)
     if not image_path.exists():
