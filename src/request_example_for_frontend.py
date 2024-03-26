@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import requests
 from PIL import Image, UnidentifiedImageError
+from pillow_heif import register_heif_opener
 from skimage.transform import rescale
 
 PROTOCOL = "https"
@@ -17,6 +18,7 @@ Image.MAX_IMAGE_PIXELS = 110000000
 
 endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
 
+register_heif_opener()
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
     """
