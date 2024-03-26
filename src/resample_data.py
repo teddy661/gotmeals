@@ -24,10 +24,7 @@ def get_sampled_data(
     :param df: The dataframe to sample
     :return: The sampled dataframe
     """
-    if is_test_data:
-        RANDOM_SEED = 242
-    else:
-        RANDOM_SEED = 42
+    RANDOM_SEED = 42
     pl.set_random_seed(RANDOM_SEED)
     train_equal_sample_df = pl.concat(
         [
@@ -88,19 +85,20 @@ def main():
     )
 
     parser = argparse.ArgumentParser(
-        description="Parse merged dataset into training or test data."
+        description="Parse merged dataset into training and test data. We're using tensorflow to create the validation data from the training data"
     )
     parser.add_argument(
         "-f",
         dest="force",
-        help="force remove existing training data directory and recreate it",
+        help="force remove existing test and training data directory and recreate it",
         action="store_true",
     )
     parser.add_argument(
         "-t",
-        dest="test",
-        help="extract testing data instead of training data",
-        action="store_true",
+        dest="test_images",
+        help="number of images to reserve for the test data",
+        type=int,
+        default=100,
     )
     parser.add_argument(
         "-n",
@@ -109,46 +107,81 @@ def main():
         type=int,
         default=120,
     )
+
     args = parser.parse_args()
     prog_name = parser.prog
     samples_per_class = args.samples_per_class
+
+    pc = ProjectConfig()
+    cfg = pl.Config()
+    cfg.set_tbl_rows(2000)
+    cfg.set_tbl_width_chars(200)
+    cfg.set_fmt_str_lengths(200)
+
     # Blindly oversample the data to ensure consistent class distribution
     # we can be smarter later on
     # Load the data
-    pc = ProjectConfig()
     SOURCE_DATA = pc.data_root_dir.joinpath("training_data.parquet")
-
     if not SOURCE_DATA.exists():
         raise FileNotFoundError(f"Source data {SOURCE_DATA} does not exist")
         exit(1)
 
-    if args.test:
-        target_name = "sampled_test_data"
-        is_test_data = True
+    sampled_test_data_name = "sampled_test_data"
+    SAMPLED_TEST_DATA_DIR = pc.data_root_dir.joinpath(sampled_test_data_name)
+    SAMPLED_TEST_DATA_PARQUET = pc.data_root_dir.joinpath(
+        sampled_test_data_name + ".parquet"
+    )
+    test_data_dict = {
+        "type": "test",
+        "dir": SAMPLED_TEST_DATA_DIR,
+        "parquet": SAMPLED_TEST_DATA_PARQUET,
+    }
+
+    sampled_training_data_name = "sampled_training_data"
+    SAMPLED_TRAINING_DATA_DIR = pc.data_root_dir.joinpath(sampled_training_data_name)
+    SAMPLED_TRAINING_DATA_PARQUET = pc.data_root_dir.joinpath(
+        sampled_training_data_name + ".parquet"
+    )
+    training_data_dict = {
+        "type": "train",
+        "dir": SAMPLED_TRAINING_DATA_DIR,
+        "parquet": SAMPLED_TRAINING_DATA_PARQUET,
+    }
+
+    data_list = [test_data_dict, training_data_dict]
+
+    # Drop any duplicate Images, We have a few
+    source_df = pl.read_parquet(SOURCE_DATA)
+    source_df = source_df.drop(["ImageId", "Image_Path"])
+    pre_dedup_count = source_df.height
+    source_df = source_df.filter(~source_df.is_duplicated())
+    post_dedup_count = source_df.height
+    if pre_dedup_count != post_dedup_count:
+        logging.warning(f"Filtered {pre_dedup_count - post_dedup_count} duplicate rows")
     else:
-        target_name = "sampled_training_data"
-        is_test_data = False
-    TARGET_DIR = pc.data_root_dir.joinpath(target_name)
-    TARGET_PARQUET = pc.data_root_dir.joinpath(target_name + ".parquet")
+        logging.info(f"No images were filtered from the source data")
 
     # Read data and drop any images that we're not scaled
-    source_df = pl.read_parquet(SOURCE_DATA)
     original_count = source_df.height
     filtered_source_df = source_df.filter(pl.col("Scaled_Image_Path") != "")
     filtered_count = filtered_source_df.height
-    logging.warning(
-        f"Filtered {original_count - filtered_count} rows with no scaled image"
-    )
+    if original_count != filtered_count:
+        logging.warning(
+            f"Filtered {original_count - filtered_count} rows with no scaled image"
+        )
+    else:
+        logging.info(f"No images were filtered from the source data")
 
     counts = (
         filtered_source_df.group_by("ClassId")
         .agg(pl.count("ClassId").alias("count"))
         .sort("count", descending=True)
     )
-
     included_classes = counts.filter(pl.col("count") >= IMAGE_COUNT_CUTOFF)["ClassId"]
     mask = filtered_source_df["ClassId"].is_in(included_classes)
     filtered_source_df = filtered_source_df.filter(mask)
+    print(counts)
+    exit()
 
     sampled_data = get_sampled_data(filtered_source_df, samples_per_class, is_test_data)
     sampled_data = sampled_data.with_columns(
