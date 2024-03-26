@@ -32,7 +32,25 @@ RUN . /app/venv/bin/activate && \
                     -o \
                     \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
                 \) -exec rm -rf '{}' +;           
-FROM rockylinux:8-minimal as prod
+FROM rockylinux:8 as prod
+RUN yum install dnf-plugins-core -y && \
+    dnf install epel-release -y && \
+    dnf config-manager --set-enabled powertools && \
+    dnf update -y && \
+    dnf install \ 
+        libcurl-devel \
+        expat-devel \
+        gettext-devel \
+        openssl-devel \
+        bzip2-devel \
+        xz-devel \ 
+        libffi-devel \
+        zlib-devel \ 
+        ncurses-devel \
+        readline-devel \
+        uuid-devel \
+        sqlite-devel -y && \
+        dnf clean all
 WORKDIR /tmp
 COPY --from=assembled /opt/python/py311 /opt/python/py311
 ENV LD_LIBRARY_PATH=/opt/python/py311/lib:${LD_LIBRARY_PATH}
