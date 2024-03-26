@@ -63,7 +63,8 @@ def main():
     ('None','Peanuts', 'Tree Nuts', 'All Nuts','Milk','Eggs', 'Fish', 'Shellfish', 'Wheat', 'Soybeans'))
 
     st.write('You selected:', option)
-    
+    responses = []  # Initialize a list to store responses for each image
+    correct_names = []  # Initialize a list to store the correctness of ingredient names for each image
     #Check if a file has been uploaded
     if uploaded_images is not None: 
         num_images = len(uploaded_images)
@@ -71,25 +72,36 @@ def main():
 
         for i in range(num_images):
             st.image(uploaded_images[i], caption = f"Uploaded Image {i+1}", use_column_width=True)
-    
-        #Submit button
-        if st.button('Submit'):
-            for i in range(num_images):
-                #Save the uploaded image to a temp directory 
-                temp_dir = "./temp"
-                os.makedirs(temp_dir, exist_ok=True)
-                temp_image_path= os.path.join(temp_dir, uploaded_images[i].name)
-                with open(temp_image_path, "wb") as f:
-                    f.write(uploaded_images[i].getvalue())
+            
+            # Check if the ingredient name is correct
+            correct_name = st.radio(f"Is this the correct ingredient name for Image {i+1}?", ("Yes", "No"), key=f"radio_{i}")
+            correct_names.append(correct_name)  # Store the correctness of the ingredient name for each image
+            
+            #Save the uploaded image to a temp directory 
+            temp_dir = "./temp"
+            os.makedirs(temp_dir, exist_ok=True)
+            temp_image_path= os.path.join(temp_dir, uploaded_images[i].name)
+            with open(temp_image_path, "wb") as f:
+                f.write(uploaded_images[i].getvalue())
 
-                #Send the image to the RESTAPI
-                api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
-                response = send_image_to_api(temp_image_path, api_endpoint)
-                st.write(f"Response for Image {i+1}: {response}")
+            #Send the image to the RESTAPI
+            api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
+            response = send_image_to_api(temp_image_path, api_endpoint)
+            responses.append(response)  # Store the response for each image
+            st.write(f"Response for Image {i+1}: {response}")
                 
-
-            st.write("Images submitted to the REST API!")
-            #Then we need to handle the responses from the model 
+        for i in range(num_images):
+            if correct_names[i] == "No":
+                corrected_name = st.text_input(f"Please enter the correct ingredient name for Image {i+1}: ", key=f"text_{i}")
+                st.write(f"Corrected name for Image {i+1}: {corrected_name}")
+            elif correct_names[i] == "Yes":
+                submit_image = st.button(f'Submit for Image {i+1}')
+                if submit_image:
+                    if responses:  # Check if responses list is not empty
+                        st.write(f"Response for Image {i+1}: {responses[i]}")  # Retrieve response for the selected image
+                    else:
+                        st.write("No response available yet.")
+                    break  # Exit the loop after processing the selected image
 
 if __name__ == "__main__":
     main()
