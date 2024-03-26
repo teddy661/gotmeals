@@ -12,6 +12,7 @@ import polars as pl
 import psutil
 from blake3 import blake3
 from PIL import Image, UnidentifiedImageError
+from pillow_heif import register_heif_opener
 from skimage.transform import rescale, rotate
 
 from utils import *
@@ -20,6 +21,7 @@ pc = ProjectConfig()
 Image.MAX_IMAGE_PIXELS = 110000000
 target_name = "training_data"
 TRAINING_DATA_PATH = pc.data_root_dir.joinpath(target_name)
+register_heif_opener()
 
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
