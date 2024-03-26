@@ -181,6 +181,7 @@ def main():
     mask = filtered_source_df["ClassId"].is_in(included_classes)
     filtered_source_df = filtered_source_df.filter(mask)
     print(counts)
+    print('This is currently not working')
     exit()
 
     sampled_data = get_sampled_data(filtered_source_df, samples_per_class, is_test_data)
