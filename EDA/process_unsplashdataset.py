@@ -13,11 +13,13 @@ import numpy as np
 import polars as pl
 import psutil
 from PIL import Image
+from pillow_heif import register_heif_opener
 
 from utils import *
 
 pc = ProjectConfig()
 
+register_heif_opener()
 Image.MAX_IMAGE_PIXELS = 110000000
 CLASSIFICATION_ROOT = pc.project_root_dir.joinpath("EDA/Image_Scraping")
 
