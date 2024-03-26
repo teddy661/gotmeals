@@ -21,6 +21,7 @@ RUN . /app/venv/bin/activate && \
                 joblib \
                 httpx \
                 pillow \
+                pillow-heif \
                 "pandas[performance, excel, computation, plot, output_formatting, html, parquet, hdf5]" \
                 "polars[pandas, numpy, pyarrow, fsspec, connectorx, xlsx2csv, deltalake, timezone]" \
                 opencv-contrib-python-headless \
