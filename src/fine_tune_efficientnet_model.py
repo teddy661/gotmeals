@@ -29,10 +29,10 @@ def main():
     Stage this for transfer learning since we have an extremely small dataset for now
     """
     pc = ProjectConfig()
-    training_dir_path = pc.data_root_dir.joinpath("sampled_training_data")
+    training_dir_path = Path("/data/sampled_training_data")
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
-    BATCH_SIZE = 20
+    BATCH_SIZE = 32
     LEARNING_RATE = 0.00001  # Default is 0.001; 1e-5 for fine-tuning
     MODEL_DIR = Path("./model_fine_tuned_saves").resolve()
     MODEL_NAME = "efficientnet_v2m"
