@@ -4,6 +4,7 @@ import multiprocessing as mp
 import platform
 import shutil
 import uuid
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -12,31 +13,52 @@ import polars as pl
 from utils import *
 
 IMAGE_COUNT_CUTOFF = 27
-TRAIN_PERCENTAGE = 0.8
+TEST_PERCENTAGE = 0.2
 
 
-def get_sampled_data(
-    raw_train_df: pl.DataFrame, samples_per_class: int, is_test_data: bool
+def sample_group(group: pl.DataFrame, fraction: float) -> pl.DataFrame:
+    RANDOM_SEED = 42
+    sample_size = max(
+        1, int(len(group) * fraction)
+    )  # Calculate sample size, ensure at least 1
+    return group.sample(
+        n=sample_size, with_replacement=False, shuffle=True, seed=RANDOM_SEED
+    )
+
+
+def get_equally_sampled_data(
+    input_df: pl.DataFrame, samples_per_class: int
 ) -> pl.DataFrame:
     """
-    Oversample our data to a median class size of samples_per_class samples if the class has more than SAMPLES_PER_CLASS
-    samples, then sample without replacement if it has less, sample with replacement.
+    Oversample our data to a median class size of samples_per_class samples if the class
+    has more than SAMPLES_PER_CLASS samples, then sample without replacement if it has less,
+    sample with replacement.
     :param df: The dataframe to sample
     :return: The sampled dataframe
     """
     RANDOM_SEED = 42
     pl.set_random_seed(RANDOM_SEED)
-    train_equal_sample_df = pl.concat(
+    equal_sample_df = pl.concat(
         [
             (
-                x.sample(samples_per_class, with_replacement=True, shuffle=False)
+                x.sample(
+                    samples_per_class,
+                    with_replacement=True,
+                    shuffle=True,
+                    seed=RANDOM_SEED,
+                )
                 if x.height <= samples_per_class
-                else x.sample(samples_per_class, with_replacement=False, shuffle=False)
+                else x.sample(
+                    samples_per_class,
+                    with_replacement=False,
+                    shuffle=True,
+                    seed=RANDOM_SEED,
+                )
             )
-            for x in raw_train_df.partition_by("ClassId")
+            for x in input_df.partition_by("ClassId")
         ]
     )
-    return train_equal_sample_df
+    return equal_sample_df
 
 
 def duplicate_image(target_dir: str, class_id: str, image_path: str) -> pl.DataFrame:
@@ -159,7 +181,7 @@ def main():
     if pre_dedup_count != post_dedup_count:
         logging.warning(f"Filtered {pre_dedup_count - post_dedup_count} duplicate rows")
     else:
-        logging.info(f"No images were filtered from the source data")
+        logging.info(f"No duplicate rows were filtered from the source data")
 
     # Read data and drop any images that we're not scaled
     original_count = source_df.height
@@ -170,21 +192,34 @@ def main():
             f"Filtered {original_count - filtered_count} rows with no scaled image"
         )
     else:
-        logging.info(f"No images were filtered from the source data")
+        logging.info(f"No rows were found with missing scaled images")
 
     counts = (
         filtered_source_df.group_by("ClassId")
         .agg(pl.count("ClassId").alias("count"))
         .sort("count", descending=True)
     )
+
+    # Filter out classes with less than IMAGE_COUNT_CUTOFF images
     included_classes = counts.filter(pl.col("count") >= IMAGE_COUNT_CUTOFF)["ClassId"]
     mask = filtered_source_df["ClassId"].is_in(included_classes)
     filtered_source_df = filtered_source_df.filter(mask)
-    print(counts)
-    print('This is currently not working')
-    exit()
 
-    sampled_data = get_sampled_data(filtered_source_df, samples_per_class, is_test_data)
+    # Get the Test Data
+    sample_group_with_fraction = partial(sample_group, fraction=TEST_PERCENTAGE)
+    test_df = filtered_source_df.group_by("ClassId").map_groups(
+        sample_group_with_fraction
+    )
+
+    # Remove the Test Data From the Candidate Data
+    remaining_df = filtered_source_df.join(
+        test_df, on=["Scaled_Image_Path"], how="anti"
+    )
+
+    train_df = get_equally_sampled_data(remaining_df, samples_per_class)
+
+    print("Currently Broken, But Heavy Lifting is Done. Finish Tomorrow")
+    exit(1)
     sampled_data = sampled_data.with_columns(
         pl.lit(str(TARGET_DIR)).alias("target_dir")
     )
