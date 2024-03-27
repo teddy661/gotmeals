@@ -12,7 +12,6 @@ from keras.applications.efficientnet_v2 import (
     decode_predictions,
     preprocess_input,
 )
-from platformdirs import user_documents_dir
 from tensorflow.keras import initializers
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
