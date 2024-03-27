@@ -71,6 +71,7 @@ def main():
         st.write(f"Number of Images Uploaded: {num_images}")
 
         for i in range(num_images):
+            # Display the uploaded image
             st.image(uploaded_images[i], caption = f"Uploaded Image {i+1}", use_column_width=True)
             
             # Check if the ingredient name is correct
@@ -88,9 +89,9 @@ def main():
             api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
             response = send_image_to_api(temp_image_path, api_endpoint)
             responses.append(response)  # Store the response for each image
-            st.write(f"Response for Image {i+1}: {response}")
+            st.write(f"Response for Image {i+1}: {response.get('ingredient', 'No ingredient found')}")
                 
-        for i in range(num_images):
+        # Process the response for the current image
             if correct_names[i] == "No":
                 corrected_name = st.text_input(f"Please enter the correct ingredient name for Image {i+1}: ", key=f"text_{i}")
                 st.write(f"Corrected name for Image {i+1}: {corrected_name}")
@@ -98,10 +99,11 @@ def main():
                 submit_image = st.button(f'Submit for Image {i+1}')
                 if submit_image:
                     if responses:  # Check if responses list is not empty
-                        st.write(f"Response for Image {i+1}: {responses[i]}")  # Retrieve response for the selected image
+                        ingredient_name = responses[i].get('ingredient', 'No ingredient found')  # Extract the ingredient name from the response
+                        st.write(f"Final Response for Image {i+1}: {ingredient_name}")  # Display the ingredient name
                     else:
                         st.write("No response available yet.")
-                    break  # Exit the loop after processing the selected image
-
+                    
+        
 if __name__ == "__main__":
     main()
