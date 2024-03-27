@@ -14,7 +14,6 @@ import psutil
 from utils import *
 
 IMAGE_COUNT_CUTOFF = 27
-TEST_PERCENTAGE = 0.2
 
 
 def sample_group(group: pl.DataFrame, fraction: float) -> pl.DataFrame:
@@ -118,22 +117,23 @@ def main():
     )
     parser.add_argument(
         "-t",
-        dest="test_images",
-        help="number of images to reserve for the test data",
-        type=int,
-        default=100,
+        dest="test_image_percentage",
+        help="precent of images to reserve for test data. defaults to 0.2",
+        type=float,
+        default=0.2,
     )
     parser.add_argument(
         "-n",
         dest="samples_per_class",
-        help="number of images sampled per class",
+        help="number of images sampled per class. defaults to 150",
         type=int,
-        default=120,
+        default=150,
     )
 
     args = parser.parse_args()
     prog_name = parser.prog
     samples_per_class = args.samples_per_class
+    TEST_PERCENTAGE = args.test_image_percentage
 
     # Cap the number of CPUs to 8 or the number of cpu cores on the machine
     num_cpus = psutil.cpu_count(logical=False)
@@ -255,8 +255,7 @@ def main():
             exit(2)
 
         data_df = parallelize_dataframe(data_df, create_sampled_data, num_cpus)
-        data_df = data_df.rename({"Image_Path": "Source_Image_Path"})
-        data_df = data_df.rename({"target_dir": "Image_Path"})
+        data_df = data_df.drop(["target_dir"])
 
         data_df.write_parquet(data_parquet)
 
