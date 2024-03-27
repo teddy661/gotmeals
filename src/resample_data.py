@@ -9,6 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import polars as pl
+import psutil
 
 from utils import *
 
@@ -134,6 +135,11 @@ def main():
     prog_name = parser.prog
     samples_per_class = args.samples_per_class
 
+    # Cap the number of CPUs to 8 or the number of cpu cores on the machine
+    num_cpus = psutil.cpu_count(logical=False)
+    if num_cpus > 8:
+        num_cpus = 8
+
     pc = ProjectConfig()
     cfg = pl.Config()
     cfg.set_tbl_rows(2000)
@@ -153,24 +159,12 @@ def main():
     SAMPLED_TEST_DATA_PARQUET = pc.data_root_dir.joinpath(
         sampled_test_data_name + ".parquet"
     )
-    test_data_dict = {
-        "type": "test",
-        "dir": SAMPLED_TEST_DATA_DIR,
-        "parquet": SAMPLED_TEST_DATA_PARQUET,
-    }
 
     sampled_training_data_name = "sampled_training_data"
     SAMPLED_TRAINING_DATA_DIR = pc.data_root_dir.joinpath(sampled_training_data_name)
     SAMPLED_TRAINING_DATA_PARQUET = pc.data_root_dir.joinpath(
         sampled_training_data_name + ".parquet"
     )
-    training_data_dict = {
-        "type": "train",
-        "dir": SAMPLED_TRAINING_DATA_DIR,
-        "parquet": SAMPLED_TRAINING_DATA_PARQUET,
-    }
-
-    data_list = [test_data_dict, training_data_dict]
 
     # Drop any duplicate Images, We have a few
     source_df = pl.read_parquet(SOURCE_DATA)
@@ -218,35 +212,53 @@ def main():
 
     train_df = get_equally_sampled_data(remaining_df, samples_per_class)
 
-    print("Currently Broken, But Heavy Lifting is Done. Finish Tomorrow")
-    exit(1)
-    sampled_data = sampled_data.with_columns(
-        pl.lit(str(TARGET_DIR)).alias("target_dir")
-    )
+    test_data_dict = {
+        "type": "test",
+        "dir": SAMPLED_TEST_DATA_DIR,
+        "parquet": SAMPLED_TEST_DATA_PARQUET,
+        "data": test_df,
+    }
 
-    if not TARGET_DIR.exists():
-        TARGET_DIR.mkdir(parents=True)
-        if TARGET_PARQUET.exists():
-            TARGET_PARQUET.unlink(missing_ok=True)
-    elif args.force:
-        logging.info(f"Removing {TARGET_DIR} and parquet file")
-        shutil.rmtree(TARGET_DIR)
-        TARGET_DIR.mkdir(parents=True)
-        TARGET_PARQUET.unlink(missing_ok=True)
-    elif not args.force:
-        logging.error(
-            f"Directory {TARGET_DIR} already exists. Use -f to remove / recreate it."
-        )
-        exit(1)
+    training_data_dict = {
+        "type": "train",
+        "dir": SAMPLED_TRAINING_DATA_DIR,
+        "parquet": SAMPLED_TRAINING_DATA_PARQUET,
+        "data": train_df,
+    }
 
-    if not TARGET_DIR.exists():
-        logging.error(f"Directory {TARGET_DIR} does not exist and it should")
-        exit(2)
+    data_list = [test_data_dict, training_data_dict]
 
-    sampled_data = parallelize_dataframe(sampled_data, create_sampled_data, 8)
-    sampled_data = sampled_data.drop("target_dir")
+    for data_dict in data_list:
+        data_dir = data_dict["dir"]
+        data_parquet = data_dict["parquet"]
+        data_df = data_dict["data"]
 
-    sampled_data.write_parquet(TARGET_PARQUET)
+        data_df = data_df.with_columns(pl.lit(str(data_dir)).alias("target_dir"))
+
+        if not data_dir.exists():
+            data_dir.mkdir(parents=True)
+            if data_parquet.exists():
+                data_parquet.unlink(missing_ok=True)
+        elif args.force:
+            logging.info(f"Removing {data_dir} and parquet file")
+            shutil.rmtree(data_dir)
+            data_dir.mkdir(parents=True)
+            data_parquet.unlink(missing_ok=True)
+        elif not args.force:
+            logging.error(
+                f"Directory {data_dir} already exists. Use -f to remove / recreate it."
+            )
+            exit(1)
+
+        if not data_dir.exists():
+            logging.error(f"Directory {data_dir} does not exist and it should")
+            exit(2)
+
+        data_df = parallelize_dataframe(data_df, create_sampled_data, num_cpus)
+        data_df = data_df.rename({"Image_Path": "Source_Image_Path"})
+        data_df = data_df.rename({"target_dir": "Image_Path"})
+
+        data_df.write_parquet(data_parquet)
 
 
 if __name__ == "__main__":
