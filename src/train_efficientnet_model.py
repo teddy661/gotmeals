@@ -59,11 +59,10 @@ def main():
     # Create a new ImageDataGenerator instance for validation data without augmentation
     # but with the necessary preprocessing.
     validation_datagen = ImageDataGenerator(
-       preprocessing_function=preprocess_input,
-       # No augmentation, only preprocessing
-       validation_split=validation_split  # Needs to match train_datagen's validation_split
-   )
-
+        preprocessing_function=preprocess_input,
+        # No augmentation, only preprocessing
+        validation_split=validation_split,  # Needs to match train_datagen's validation_split
+    )
 
     train_generator = train_datagen.flow_from_directory(
         training_dir_path,
@@ -76,15 +75,14 @@ def main():
     )
 
     validation_generator = validation_datagen.flow_from_directory(
-       training_dir_path,
-       target_size=(224, 224),
-       batch_size=BATCH_SIZE,
-       class_mode="sparse",
-       subset="validation",
-       shuffle=True,
-       seed=flow_from_directory_seed,
-   )
-
+        training_dir_path,
+        target_size=(224, 224),
+        batch_size=BATCH_SIZE,
+        class_mode="sparse",
+        subset="validation",
+        shuffle=True,
+        seed=flow_from_directory_seed,
+    )
 
     class_list = list(train_generator.class_indices.keys())
     joblib.dump(
