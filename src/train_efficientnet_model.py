@@ -133,7 +133,7 @@ def main():
         mode="min",
         verbose=1,
         patience=10,
-        min_delta=0.001,
+        min_delta=0.01,
         restore_best_weights=True,
     )
     model_checkpoint = ModelCheckpoint(
