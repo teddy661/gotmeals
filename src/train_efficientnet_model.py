@@ -128,7 +128,7 @@ def main():
         monitor="val_loss",
         mode="min",
         verbose=1,
-        patience=10,
+        patience=5,
         min_delta=0.01,
         restore_best_weights=True,
     )
