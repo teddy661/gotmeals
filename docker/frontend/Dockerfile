@@ -15,6 +15,7 @@ RUN . /app/venv/bin/activate && \
         pip3 install --no-cache-dir --upgrade setuptools wheel && \
         pip3 install --no-cache-dir \
                 streamlit==1.32.2 \
+                elasticsearch==8.12.1 \
                 "aiohttp[speedups]" \
                 blake3 \
                 psutil \
