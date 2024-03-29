@@ -4,6 +4,7 @@ import requests
 import os 
 import json
 from pathlib import Path
+from elasticsearch_main import search_recipes, es
 
 PROTOCOL = "https"
 HOST = "edbrown.mids255.com"
@@ -98,11 +99,18 @@ def main():
             elif correct_names[i] == "Yes":
                 submit_image = st.button(f'Submit for Image {i+1}')
                 if submit_image:
-                    if responses:  # Check if responses list is not empty
-                        ingredient_name = responses[i].get('ingredient', 'No ingredient found')  # Extract the ingredient name from the response
-                        st.write(f"Final Response for Image {i+1}: {ingredient_name}")  # Display the ingredient name
-                    else:
-                        st.write("No response available yet.")
+                    ingredient_names = [response.get('ingredient', 'No ingredient found') for response in responses]
+                    for i, ingredient_name in enumerate(ingredient_names, start=1):
+                        st.write(f"Final Response for Image {i}: {ingredient_name}")  # Display the ingredient name
+            # Perform Elasticsearch query for recipes based on the ingredient name and display the results
+                        recipes = search_recipes(es, [ingredient_name])
+                        if recipes['hits']['hits']:
+                            for hit in recipes['hits']['hits']:
+                                st.write(f"Recipe Title: {hit['_source']['title']}")
+                                st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
+                                st.write(f"Recipe Directions: {hit['_source']['directions']}")
+                        else:
+                            st.write("No recipes found.")
                     
         
 if __name__ == "__main__":
