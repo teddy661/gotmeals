@@ -17,8 +17,10 @@ PORT = 443
 Image.MAX_IMAGE_PIXELS = 110000000
 
 endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
+class_list_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/classes"
 
 register_heif_opener()
+
 
 def center_crop(image: np.array, target_height: int, target_width: int) -> np.array:
     """
@@ -123,6 +125,10 @@ def main():
 
     print(response.status_code)
     print(json.dumps(response.json()))
+
+    class_list_results = requests.get(class_list_endpoint)
+    print(class_list_results.status_code)
+    print(json.dumps(class_list_results.json()))
 
 
 if __name__ == "__main__":
