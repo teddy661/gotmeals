@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
+from typing import List
 
 import joblib
 import keras
@@ -43,13 +44,20 @@ if class_list.exists():
 
 app = FastAPI()
 
+
 class TimeStamp(BaseModel, extra="forbid"):
     timestamp: datetime = None
+
+
 class PredictResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     image_hash: str
     ingredient: str
     confidence: float
+
+
+class ModelClasses(BaseModel):
+    classes: List[str]
 
 
 @app.get("/")
@@ -72,6 +80,11 @@ async def return_git_version():
         return {"git-version": "unknown"}
     else:
         return get_app_version()
+
+
+@app.get("/classes", status_code=status.HTTP_200_OK)
+async def return_class_list():
+    return ModelClasses(classes=class_list)
 
 
 def convert_bytes_to_image(file_bytes) -> Image.Image:

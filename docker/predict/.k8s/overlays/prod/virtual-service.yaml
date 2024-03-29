@@ -20,6 +20,8 @@ spec:
             prefix: /openapi.json
         - uri:
             prefix: /version
+        - uri:
+            prefix: /classes
       route:
         - destination:
             host: lab4
