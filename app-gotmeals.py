@@ -66,7 +66,9 @@ def main():
     st.write('You selected:', option)
     responses = []  # Initialize a list to store responses for each image
     correct_names = []  # Initialize a list to store the correctness of ingredient names for each image
-    #Check if a file has been uploaded
+    ingredient_names = []  # Initialize a list to store ingredient names in the order of image uploads
+    
+    # Check if a file has been uploaded
     if uploaded_images is not None: 
         num_images = len(uploaded_images)
         st.write(f"Number of Images Uploaded: {num_images}")
@@ -79,38 +81,49 @@ def main():
             correct_name = st.radio(f"Is this the correct ingredient name for Image {i+1}?", ("Yes", "No"), key=f"radio_{i}")
             correct_names.append(correct_name)  # Store the correctness of the ingredient name for each image
             
-            #Save the uploaded image to a temp directory 
-            temp_dir = "./temp"
-            os.makedirs(temp_dir, exist_ok=True)
-            temp_image_path= os.path.join(temp_dir, uploaded_images[i].name)
-            with open(temp_image_path, "wb") as f:
-                f.write(uploaded_images[i].getvalue())
-
-            #Send the image to the RESTAPI
-            api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
-            response = send_image_to_api(temp_image_path, api_endpoint)
-            responses.append(response)  # Store the response for each image
-            st.write(f"Response for Image {i+1}: {response.get('ingredient', 'No ingredient found')}")
-                
-        # Process the response for the current image
-            if correct_names[i] == "No":
+            # If the ingredient name is incorrect, provide a text input box to enter the correct name
+            if correct_name == "No":
                 corrected_name = st.text_input(f"Please enter the correct ingredient name for Image {i+1}: ", key=f"text_{i}")
                 st.write(f"Corrected name for Image {i+1}: {corrected_name}")
-            elif correct_names[i] == "Yes":
-                submit_image = st.button(f'Submit for Image {i+1}')
-                if submit_image:
-                    ingredient_names = [response.get('ingredient', 'No ingredient found') for response in responses]
-                    for i, ingredient_name in enumerate(ingredient_names, start=1):
-                        st.write(f"Final Response for Image {i}: {ingredient_name}")  # Display the ingredient name
-            # Perform Elasticsearch query for recipes based on the ingredient name and display the results
-                        recipes = search_recipes(es, [ingredient_name])
-                        if recipes['hits']['hits']:
-                            for hit in recipes['hits']['hits']:
-                                st.write(f"Recipe Title: {hit['_source']['title']}")
-                                st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
-                                st.write(f"Recipe Directions: {hit['_source']['directions']}")
-                        else:
-                            st.write("No recipes found.")
+                ingredient_names.append(corrected_name)
+            else:
+                #Save the uploaded image to a temp directory 
+                temp_dir = "./temp"
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_image_path= os.path.join(temp_dir, uploaded_images[i].name)
+                with open(temp_image_path, "wb") as f:
+                    f.write(uploaded_images[i].getvalue())
+
+                #Send the image to the RESTAPI
+                api_endpoint = f"{PROTOCOL}://{HOST}:{PORT}/predict"
+                response = send_image_to_api(temp_image_path, api_endpoint)
+                responses.append(response)  # Store the response for each image
+                st.write(f"Response for Image {i+1}: {response.get('ingredient', 'No ingredient found')}")
+                
+                # If the ingredient name is correct, add it to the list of ingredient names
+                ingredient_name = response.get('ingredient', 'No ingredient found')
+                ingredient_names.append(ingredient_name)
+
+        # Display the submit button
+        submit_button = st.button("Submit")
+
+        if submit_button:
+            # Ensure that the first ingredient takes priority in the recipe
+            first_ingredient = ingredient_names[0]
+            nice_to_have_ingredients = ingredient_names[1:]
+
+            # Construct the list of ingredient names prioritized based on the order of image uploads
+            ingredient_names_prioritized = [first_ingredient] + [ingredient for ingredient in nice_to_have_ingredients if ingredient != first_ingredient]
+            
+            # Perform Elasticsearch query for recipes based on all ingredient names
+            recipes = search_recipes(es, ingredient_names_prioritized)
+            if recipes['hits']['hits']:
+                for hit in recipes['hits']['hits']:
+                    st.write(f"Recipe Title: {hit['_source']['title']}")
+                    st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
+                    st.write(f"Recipe Directions: {hit['_source']['directions']}")
+            else:
+                st.write("No recipes found.")
                     
         
 if __name__ == "__main__":
