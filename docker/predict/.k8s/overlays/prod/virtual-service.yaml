@@ -29,7 +29,7 @@ spec:
             number: 8888
     - match:
       - uri:
-          exact: /gotmeals
+          prefix: /gotmeals
       route:
       - destination:
           host: frontend
