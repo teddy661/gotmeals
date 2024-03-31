@@ -22,14 +22,14 @@ spec:
           readinessProbe:
             httpGet:
               scheme: HTTP
-              path: /health
+              path: /_stcore/health
               port: 8501
             initialDelaySeconds: 1
             periodSeconds: 3
           livenessProbe:
             httpGet:
               scheme: HTTP
-              path: /health
+              path: /_stcore/health
               port: 8501
             initialDelaySeconds: 15
             periodSeconds: 20
