@@ -35,3 +35,11 @@ spec:
             host: elasticsearch
             port:
               number: 9200
+    - match: 
+        - uri:
+            prefix: /frontend
+      route:
+        - destination:
+            host: frontend
+            port:
+              number: 8501

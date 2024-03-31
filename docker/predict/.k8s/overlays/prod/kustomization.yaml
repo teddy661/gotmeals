@@ -13,3 +13,7 @@ patches:
     target:
       kind: Deployment
       name: elasticsearch
+  - path: patch-deployment-frontend.yaml
+    target:
+      kind: Deployment
+      name: frontend

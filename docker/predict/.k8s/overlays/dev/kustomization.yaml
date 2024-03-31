@@ -12,3 +12,4 @@ patches:
 patchesStrategicMerge:
   - service-lab4-loadbalancer.yaml
   - service-elasticsearch-loadbalancer.yaml
+  - service-frontend-loadbalancer.yaml
