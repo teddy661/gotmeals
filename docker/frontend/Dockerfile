@@ -65,4 +65,4 @@ ENV TERM=xterm-256color
 ENV SHELL=/bin/bash
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 ENTRYPOINT ["streamlit"]
-CMD ["run", "src/app-gotmeals.py", "--server.address=0.0.0.0", "--server.port=8501"]
+CMD ["run", "src/app-gotmeals.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.baseUrlPath=gotmeals"]

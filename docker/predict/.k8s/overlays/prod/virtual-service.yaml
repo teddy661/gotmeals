@@ -10,36 +10,36 @@ spec:
     - istio-ingress/edbrown-gateway
   http:
     - match:
-        - uri:
-            exact: /predict
-        - uri:
-            prefix: /health
-        - uri:
-            prefix: /docs
-        - uri:
-            prefix: /openapi.json
-        - uri:
-            prefix: /version
-        - uri:
-            prefix: /classes
+      - uri:
+          exact: /predict
+      - uri:
+          exact: /health
+      - uri:
+          exact: /docs
+      - uri:
+          exact: /openapi.json
+      - uri:
+          exact: /version
+      - uri:
+          exact: /classes
       route:
-        - destination:
-            host: lab4
-            port:
-              number: 8888
-    - match: 
-        - uri:
-            prefix: /
+      - destination:
+          host: lab4
+          port:
+            number: 8888
+    - match:
+      - uri:
+          exact: /gotmeals
       route:
-        - destination:
-            host: elasticsearch
-            port:
-              number: 9200
-    - match: 
-        - uri:
-            prefix: /frontend
+      - destination:
+          host: frontend
+          port:
+            number: 8501
+    - match:
+      - uri:
+          prefix: /
       route:
-        - destination:
-            host: frontend
-            port:
-              number: 8501
+      - destination:
+          host: elasticsearch
+          port:
+            number: 9200

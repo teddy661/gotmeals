@@ -22,4 +22,11 @@ K8S_PROD_DIR=${SCRIPT_DIR}/.k8s/overlays/prod
 DEPLOYMENT_TEMPLATE=${K8S_PROD_DIR}/patch-deployment-lab4_copy.yaml
 DEPLOYMENT_FILE=${K8S_PROD_DIR}/patch-deployment-lab4.yaml
 
+az login --tenant berkeleydatasciw255.onmicrosoft.com
+kubectl config use-context w255-aks
+IMAGE_PREFIX=$(az account list --all | jq '.[].user.name' | grep -i berkeley.edu | awk -F@ '{print $1}' | tr -d '"' | uniq)
+
+kubectl -n edbrown apply -k ${K8S_PROD_DIR}
 ACR_NAME=w255mids
+az acr login --name ${ACR_NAME}
+docker push ${ACR_NAME}.azurecr.io/lab4:latest
