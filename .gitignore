@@ -2,6 +2,9 @@
 docker/predict/src/class_list.lzma
 docker/predict/src/efficientnet_v2m.h5
 docker/segment/checkpoints/
+src/model_fine_tuned_saves/
+src/model_saves/
+sa_models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
