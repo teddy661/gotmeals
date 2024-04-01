@@ -111,7 +111,7 @@ def rescale_image_for_imagenet(image_path: str, new_image_size: int = 256) -> np
 
 def main():
     debug = True
-    file_to_predict = Path("celery.png")
+    file_to_predict = Path("celery.heic")
     if not file_to_predict.exists():
         raise FileNotFoundError(f"File {file_to_predict} not found")
 
