@@ -109,27 +109,33 @@ def main():
 
         if submit_button:
             # Ensure that the first ingredient takes priority in the recipe
-            first_ingredient = ingredient_names[0]
-            nice_to_have_ingredients = ingredient_names[1:]
-            
-            # Construct the list of ingredient names prioritized based on the order of image uploads
-            ingredient_names_prioritized = [first_ingredient] + [ingredient for ingredient in nice_to_have_ingredients if ingredient != first_ingredient]
-            
-            # Perform Elasticsearch query for recipes based on all ingredient names
-            recipes = search_recipes(es, ingredient_names_prioritized)
-            if recipes['hits']['hits']:
-                for hit in recipes['hits']['hits']:
-                    # Check if the recipe contains the selected allergy
-                    if option != 'None' and option.lower().replace(' ', '_') not in hit['_source']['ingredients'].lower():
-                        st.write(f"Recipe Title: {hit['_source']['title']}")
-                        st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
-                        st.write(f"Recipe Directions: {hit['_source']['directions']}")
-                    elif option == 'None':
-                        st.write(f"Recipe Title: {hit['_source']['title']}")
-                        st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
-                        st.write(f"Recipe Directions: {hit['_source']['directions']}")
+            if ingredient_names:
+                first_ingredient = ingredient_names[0]
+                nice_to_have_ingredients = ingredient_names[1:]
+                
+                # Construct the list of ingredient names prioritized based on the order of image uploads
+                ingredient_names_prioritized = [first_ingredient] + [ingredient for ingredient in nice_to_have_ingredients if ingredient != first_ingredient]
+                
+                # Perform Elasticsearch query for recipes based on all ingredient names
+                recipes = search_recipes(es, ingredient_names_prioritized)
+                if recipes['hits']['hits']:
+                    for hit in recipes['hits']['hits']:
+                        # Check if the recipe contains the selected allergy
+                        if option != 'None' and option.lower().replace(' ', '_') not in hit['_source']['ingredients'].lower():
+                            st.write(f"Recipe Title: {hit['_source']['title']}")
+                            st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
+                            st.write(f"Recipe Directions: {hit['_source']['directions']}")
+                        elif option == 'None':
+                            st.write(f"Recipe Title: {hit['_source']['title']}")
+                            st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
+                            st.write(f"Recipe Directions: {hit['_source']['directions']}")
+                else:
+                    st.write("")  # Leave the output blank if no recipes are found
             else:
-                st.write("")
+                st.write("No images uploaded. Please upload at least one image.")  # Inform user if no images are uploaded
+    else:
+        st.write("No images uploaded. Please upload at least one image.")  # Inform user if no images are uploaded
+                    
                     
         
 if __name__ == "__main__":
