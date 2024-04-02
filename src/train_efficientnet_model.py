@@ -37,6 +37,17 @@ def main():
     MODEL_DIR = Path("./model_saves").resolve()
     MODEL_NAME = "efficientnet_v2m"
 
+    gpus = tf.config.list_physical_devices("GPU")
+    text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
+
+    mirrored_strategy = tf.distribute.MirroredStrategy(devices=text_gpu_list)
+
+    if len(gpus) > 0:
+        BATCH_SIZE = BATCH_SIZE * len(gpus)
+    else:
+        print("No GPUs detected. Exiting")
+        exit(1)
+
     for i in training_dir_path.iterdir():
         if i.is_dir():
             NUM_CLASSES += 1
@@ -90,41 +101,46 @@ def main():
         class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
     )
 
-    base_model = EfficientNetV2M(
-        weights="imagenet", include_top=False, input_shape=(224, 224, 3)
-    )
-    base_model.trainable = False
+    with mirrored_strategy.scope():
+        base_model = EfficientNetV2M(
+            weights="imagenet", include_top=False, input_shape=(224, 224, 3)
+        )
+        base_model.trainable = False
 
-    # Modify the output layer
-    x = base_model.output
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    # x = Dropout(0.2)(x)
-    # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        # Modify the output layer
+        x = base_model.output
+        x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # x = Dropout(0.2)(x)
+        # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
 
-    x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.3)(x)
+        x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.3)(x)
 
-    x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.3)(x)
+        x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.3)(x)
 
-    x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.4)(x)
+        x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.4)(x)
 
-    # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = BatchNormalization()(x)
-    # x = Dropout(0.5)(x)
+        # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        # x = BatchNormalization()(x)
+        # x = Dropout(0.5)(x)
 
-    predictions = Dense(NUM_CLASSES, activation="softmax")(x)
+        predictions = Dense(NUM_CLASSES, activation="softmax")(x)
 
-    model = Model(inputs=base_model.input, outputs=predictions)
-    model.summary(show_trainable=True, line_length=150)
-    optimizer = Adam(learning_rate=LEARNING_RATE)
-    model.compile(
-        optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
-    )
+        model = Model(inputs=base_model.input, outputs=predictions)
+        model.summary(show_trainable=True, line_length=150)
+        optimizer = Adam(learning_rate=LEARNING_RATE)
+
+        model.compile(
+            optimizer=optimizer,
+            loss=SparseCategoricalCrossentropy(),
+            metrics=["accuracy"],
+        )
+
     early_stopping = EarlyStopping(
         monitor="val_loss",
         mode="min",

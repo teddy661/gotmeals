@@ -37,6 +37,17 @@ def main():
     MODEL_DIR = Path("./model_fine_tuned_saves").resolve()
     MODEL_NAME = "efficientnet_v2m"
 
+    gpus = tf.config.list_physical_devices("GPU")
+    text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
+
+    mirrored_strategy = tf.distribute.MirroredStrategy(devices=text_gpu_list)
+
+    if len(gpus) > 0:
+        BATCH_SIZE = BATCH_SIZE * len(gpus)
+    else:
+        print("No GPUs detected. Exiting")
+        exit(1)
+
     validation_split = 0.2
     flow_from_directory_seed = 42
     train_datagen = ImageDataGenerator(
@@ -81,17 +92,20 @@ def main():
         seed=flow_from_directory_seed,
     )
 
-    model = tf.keras.models.load_model("model_saves/efficientnet_v2m.h5")
-    for layer in model.layers:
-        layer.trainable = True
-        if isinstance(layer, BatchNormalization):
-            layer.trainable = False
+    with mirrored_strategy.scope():
+        model = tf.keras.models.load_model("model_saves/efficientnet_v2m.h5")
+        for layer in model.layers:
+            layer.trainable = True
+            if isinstance(layer, BatchNormalization):
+                layer.trainable = False
 
-    model.summary(show_trainable=True)
-    optimizer = Adam(learning_rate=LEARNING_RATE)
-    model.compile(
-        optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
-    )
+        model.summary(show_trainable=True)
+        optimizer = Adam(learning_rate=LEARNING_RATE)
+        model.compile(
+            optimizer=optimizer,
+            loss=SparseCategoricalCrossentropy(),
+            metrics=["accuracy"],
+        )
     early_stopping = EarlyStopping(
         monitor="val_loss",
         mode="min",
