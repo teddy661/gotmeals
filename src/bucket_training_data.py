@@ -4,67 +4,46 @@ import multiprocessing as mp
 import platform
 import shutil
 import sys
-from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 import polars as pl
 import psutil
-from blake3 import blake3
-from PIL import Image, UnidentifiedImageError
-from pillow_heif import register_heif_opener
-from skimage.transform import rescale, rotate
 
 from utils import *
 
 pc = ProjectConfig()
-Image.MAX_IMAGE_PIXELS = 110000000
-target_name = "training_data_71_prediction_results.parquet"
+
+target_name = "separated_training_data"
 TRAINING_DATA_PATH = pc.data_root_dir.joinpath(target_name)
+SOURCE_DATA_PATH = pc.data_root_dir.joinpath("training_data_71")
+
+# def rescale_image_for_imagenet(
+#    class_id: str, image_path: str, new_image_size: int = 256
+# ) -> np.array:
+# return
 
 
-def rescale_image_for_imagenet(
-    class_id: str, image_path: str, new_image_size: int = 256
-) -> np.array:
-    image_path = Path(image_path)
-    if not image_path.exists():
-        logging.error(f"ERROR: Missing Image: {image_path}")
-        return (0, 0, 0, "")
-    try:
-        image = Image.open(image_path)
-    except UnidentifiedImageError:
-        logging.error(f"ERROR: Unidentified Image: {image_path}")
-        return (0, 0, 0, "")
-    if image.format == "PNG":
-        if image.mode != "RGBA":
-            image = image.convert("RGBA")
-        else:
-            image = image.convert("RGB")
+def fix_paths(path: Path, new_root_dir: Path) -> str:
+    file_name = path.name
+    parent_dir = path.parent.name
+    return str(new_root_dir.joinpath(parent_dir).joinpath(file_name).resolve())
+
+
+#  copy_file(Path(x["local_file_path"]), x["true_class_label"], x["predicted_class_label"], TRAINING_DATA_PATH)
+def copy_file(
+    src_file: Path, true_label: str, predicted_label: str, dest_dir: Path
+) -> str:
+    dest_dir = dest_dir.joinpath(true_label)
+    if true_label != predicted_label:
+        sub_dir = "wrong"
     else:
-        image = image.convert("RGB")
-
-    image_data = np.asarray(image, dtype=np.float64) / 255.0
-    _, _, rs_image = rescale_image(image_data, new_image_size=new_image_size)
-    cropped_image = center_crop(rs_image, 224, 224)
-    image_target_dir = TRAINING_DATA_PATH.joinpath(class_id)
-    if not image_target_dir.exists():
-        image_target_dir.mkdir(parents=True)
-
-    with BytesIO() as bio:
-        Image.fromarray((cropped_image * 255).astype(np.uint8)).save(bio, format="PNG")
-        cropped_image_hash = blake3(bio.getvalue()).hexdigest()
-        image_abs_path = image_target_dir.joinpath(cropped_image_hash + ".png")
-        with open(image_abs_path, "wb") as f:
-            f.write(bio.getvalue())
-    return (
-        cropped_image.shape[1],
-        cropped_image.shape[0],
-        cropped_image.shape[0] * cropped_image.shape[1],
-        str(image_abs_path),
-    )
-
-
-
+        sub_dir = "correct"
+    dest_dir = dest_dir.joinpath(sub_dir)
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_file = dest_dir.joinpath(src_file.name)
+    shutil.copy(src_file, dest_file)
+    return str(dest_file)
 
 
 def main():
@@ -86,7 +65,7 @@ def main():
     prog_name = parser.prog
 
     common_dataset_path = pc.data_root_dir.joinpath(
-        "merged_dataset_corrected_classes.parquet"
+        "training_data_71_prediction_results.parquet"
     )
     training_data_parquet_file = pc.data_root_dir.joinpath(target_name + ".parquet")
 
@@ -104,10 +83,47 @@ def main():
 
     logging.info(f"Reading {common_dataset_path}")
     df = pl.read_parquet(common_dataset_path)
-    # Certain datasets have huge images that clog up a few threads
-    # shuffle the dataframe to hopefully distribute the load better
-    # and avoid a few processes getting stuck on huge images
-    df = df.sample(fraction=1, seed=142, with_replacement=False, shuffle=True)
+
+    # Convert the file paths to local paths just in case
+    df = df.with_columns(
+        pl.col("file_path")
+        .map_elements(
+            lambda x: fix_paths(Path(x), SOURCE_DATA_PATH), return_dtype=pl.Utf8
+        )
+        .alias("local_file_path")
+    )
+
+    # Check that the local paths exist just to be sure
+    df = df.with_columns(
+        pl.col("local_file_path")
+        .map_elements(lambda x: Path(x).exists(), return_dtype=pl.Boolean)
+        .alias("local_file_exists")
+    )
+    missing_files = df.filter(pl.col("local_file_exists") == False)
+    if missing_files.height > 0:
+        logging.error(f"Missing files: {missing_files}")
+        exit(1)
+    else:
+        logging.info(f"All files exist")
+
+    df = df.with_columns(
+        pl.struct(["local_file_path", "true_class_labels", "predicted_label"])
+        .map_elements(
+            lambda x: copy_file(
+                Path(x["local_file_path"]),
+                x["true_class_labels"],
+                x["predicted_label"],
+                TRAINING_DATA_PATH,
+            ),
+            return_dtype=pl.Utf8,
+        )
+        .alias("final_file_path")
+    )
+    print(df.head)
+    df.write_parquet(training_data_parquet_file, compression="lz4")
+    logging.info(f"Writing {training_data_parquet_file}")
+    exit(1)
+
     logging.info(f"Scaling images")
 
     num_cpus = psutil.cpu_count(logical=False)
