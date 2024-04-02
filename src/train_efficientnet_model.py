@@ -113,15 +113,15 @@ def main():
         # x = Dropout(0.2)(x)
         # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
 
-        x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = Dense(512, activation="swish", kernel_initializer=initializers.HeNormal())(x)
         x = BatchNormalization()(x)
         x = Dropout(0.3)(x)
 
-        x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = Dense(256, activation="swish", kernel_initializer=initializers.HeNormal())(x)
         x = BatchNormalization()(x)
         x = Dropout(0.3)(x)
 
-        x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = Dense(128, activation="swish", kernel_initializer=initializers.HeNormal())(x)
         x = BatchNormalization()(x)
         x = Dropout(0.4)(x)
 
