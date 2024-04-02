@@ -51,7 +51,9 @@ def main():
         height_shift_range=0.2,  # Random vertical shifts (as a fraction of total height)
         shear_range=0.2,  # Shear transformation intensity
         zoom_range=0.2,  # Random zoom range
-        fill_mode="nearest",  # Strategy for filling in newly created pixels
+        horizontal_flip=True,  # Randomly flip inputs horizontally
+        vertical_flip=True,  # Randomly flip inputs vertically
+        fill_mode="wrap",  # Strategy for filling in newly created pixels
         validation_split=validation_split,
     )
 
