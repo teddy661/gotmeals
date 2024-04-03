@@ -13,7 +13,7 @@ import psutil
 
 from utils import *
 
-IMAGE_COUNT_CUTOFF = 27
+IMAGE_COUNT_CUTOFF = 2
 
 
 def sample_group(group: pl.DataFrame, fraction: float) -> pl.DataFrame:
@@ -127,7 +127,7 @@ def main():
         dest="samples_per_class",
         help="number of images sampled per class. defaults to 150",
         type=int,
-        default=150,
+        default=200,
     )
 
     args = parser.parse_args()
@@ -149,18 +149,18 @@ def main():
     # Blindly oversample the data to ensure consistent class distribution
     # we can be smarter later on
     # Load the data
-    SOURCE_DATA = pc.data_root_dir.joinpath("training_data.parquet")
+    SOURCE_DATA = pc.data_root_dir.joinpath("separated_training_data.parquet")
     if not SOURCE_DATA.exists():
         raise FileNotFoundError(f"Source data {SOURCE_DATA} does not exist")
         exit(1)
 
-    sampled_test_data_name = "sampled_test_data"
+    sampled_test_data_name = "sampled_test_data_200"
     SAMPLED_TEST_DATA_DIR = pc.data_root_dir.joinpath(sampled_test_data_name)
     SAMPLED_TEST_DATA_PARQUET = pc.data_root_dir.joinpath(
         sampled_test_data_name + ".parquet"
     )
 
-    sampled_training_data_name = "sampled_training_data"
+    sampled_training_data_name = "sampled_training_data_200"
     SAMPLED_TRAINING_DATA_DIR = pc.data_root_dir.joinpath(sampled_training_data_name)
     SAMPLED_TRAINING_DATA_PARQUET = pc.data_root_dir.joinpath(
         sampled_training_data_name + ".parquet"
