@@ -35,8 +35,19 @@ def main():
     NUM_EPOCHS = 1000
     BATCH_SIZE = 32
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
-    MODEL_DIR = Path("./model_saves").resolve()
+    MODEL_DIR = Path("./model_saves_fc").resolve()
     MODEL_NAME = "efficientnet_v2m"
+
+    gpus = tf.config.list_physical_devices("GPU")
+    text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
+
+    mirrored_strategy = tf.distribute.MirroredStrategy(devices=text_gpu_list)
+
+    if len(gpus) > 0:
+        BATCH_SIZE = BATCH_SIZE * len(gpus)
+    else:
+        print("No GPUs detected. Exiting")
+        exit(1)
 
     for i in training_dir_path.iterdir():
         if i.is_dir():
@@ -52,13 +63,12 @@ def main():
         height_shift_range=0.2,  # Random vertical shifts (as a fraction of total height)
         shear_range=0.2,  # Shear transformation intensity
         zoom_range=0.2,  # Random zoom range
-        fill_mode="nearest",  # Strategy for filling in newly created pixels
+        horizontal_flip=True,  # Randomly flip inputs horizontally
+        vertical_flip=True,  # Randomly flip inputs vertically
+        fill_mode="wrap",  # Strategy for filling in newly created pixels
+        validation_split=validation_split,
     )
 
-    #train_datagen = ImageDataGenerator(
-        #preprocessing_function=preprocess_input,
-        # No augmentation, only preprocessing
-    #)
     # Create a new ImageDataGenerator instance for validation data without augmentation
     # but with the necessary preprocessing.
     validation_datagen = ImageDataGenerator(
@@ -76,7 +86,7 @@ def main():
     )
 
     if validation_dir_path.exists() is False:
-        print("FUCKER")
+        print("No validation dir")
         exit(1)
     validation_generator = validation_datagen.flow_from_directory(
         validation_dir_path,
@@ -92,41 +102,50 @@ def main():
         class_list, "class_list.lzma", compress=3, protocol=pickle.HIGHEST_PROTOCOL
     )
 
-    base_model = EfficientNetV2M(
-        weights="imagenet", include_top=False, input_shape=(224, 224, 3)
-    )
-    base_model.trainable = False
+    with mirrored_strategy.scope():
+        base_model = EfficientNetV2M(
+            weights="imagenet", include_top=False, input_shape=(224, 224, 3)
+        )
+        base_model.trainable = False
 
-    # Modify the output layer
-    x = base_model.output
-    x = tf.keras.layers.GlobalAveragePooling2D()(x)
-    # x = Dropout(0.2)(x)
-    # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        # Modify the output layer
+        x = base_model.output
+        x = tf.keras.layers.GlobalAveragePooling2D()(x)
+        # x = Dropout(0.2)(x)
+        # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
 
-    x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.3)(x)
+        x = Dense(1024, activation="swish", kernel_initializer=initializers.HeNormal())(
+            x
+        )
+        x = BatchNormalization()(x)
+        x = Dropout(0.5)(x)
 
-    x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.3)(x)
+        x = Dense(512, activation="swish", kernel_initializer=initializers.HeNormal())(
+            x
+        )
+        x = BatchNormalization()(x)
+        x = Dropout(0.5)(x)
 
-    x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.4)(x)
+        # x = Dense(128, activation="swish", kernel_initializer=initializers.HeNormal())(x)
+        # x = BatchNormalization()(x)
+        # x = Dropout(0.4)(x)
 
-    # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
-    # x = BatchNormalization()(x)
-    # x = Dropout(0.5)(x)
+        # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        # x = BatchNormalization()(x)
+        # x = Dropout(0.5)(x)
 
-    predictions = Dense(NUM_CLASSES, activation="softmax")(x)
+        predictions = Dense(NUM_CLASSES, activation="softmax")(x)
 
-    model = Model(inputs=base_model.input, outputs=predictions)
-    model.summary(show_trainable=True, line_length=150)
-    optimizer = Adam(learning_rate=LEARNING_RATE)
-    model.compile(
-        optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
-    )
+        model = Model(inputs=base_model.input, outputs=predictions)
+        model.summary(show_trainable=True, line_length=150)
+        optimizer = Adam(learning_rate=LEARNING_RATE)
+
+        model.compile(
+            optimizer=optimizer,
+            loss=SparseCategoricalCrossentropy(),
+            metrics=["accuracy"],
+        )
+
     early_stopping = EarlyStopping(
         monitor="val_loss",
         mode="min",

@@ -35,8 +35,19 @@ def main():
     NUM_EPOCHS = 1000
     BATCH_SIZE = 32
     LEARNING_RATE = 0.00001  # Default is 0.001; 1e-5 for fine-tuning
-    MODEL_DIR = Path("./model_fine_tuned_saves").resolve()
+    MODEL_DIR = Path("./model_fine_tuned_saves_fc").resolve()
     MODEL_NAME = "efficientnet_v2m"
+
+    gpus = tf.config.list_physical_devices("GPU")
+    text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
+
+    mirrored_strategy = tf.distribute.MirroredStrategy(devices=text_gpu_list)
+
+    if len(gpus) > 0:
+        BATCH_SIZE = BATCH_SIZE * len(gpus)
+    else:
+        print("No GPUs detected. Exiting")
+        exit(1)
 
     validation_split = 0.2
     flow_from_directory_seed = 42
@@ -48,13 +59,12 @@ def main():
         height_shift_range=0.2,  # Random vertical shifts (as a fraction of total height)
         shear_range=0.2,  # Shear transformation intensity
         zoom_range=0.2,  # Random zoom range
-        fill_mode="nearest",  # Strategy for filling in newly created pixels
+        horizontal_flip=True,  # Randomly flip inputs horizontally
+        vertical_flip=True,  # Randomly flip inputs vertically
+        fill_mode="wrap",  # Strategy for filling in newly created pixels
+        validation_split=validation_split,
     )
 
-    #train_datagen = ImageDataGenerator(
-        #preprocessing_function=preprocess_input,
-        # No augmentation, only preprocessing
-    #)
     # Create a new ImageDataGenerator instance for validation data without augmentation
     # but with the necessary preprocessing.
     validation_datagen = ImageDataGenerator(
@@ -80,17 +90,20 @@ def main():
         seed=flow_from_directory_seed,
     )
 
-    model = tf.keras.models.load_model("model_saves/efficientnet_v2m.h5")
-    for layer in model.layers:
-        layer.trainable = True
-        if isinstance(layer, BatchNormalization):
-            layer.trainable = False
+    with mirrored_strategy.scope():
+        model = tf.keras.models.load_model("model_saves_fc/efficientnet_v2m.h5")
+        for layer in model.layers:
+            layer.trainable = True
+            if isinstance(layer, BatchNormalization):
+                layer.trainable = False
 
-    model.summary(show_trainable=True)
-    optimizer = Adam(learning_rate=LEARNING_RATE)
-    model.compile(
-        optimizer=optimizer, loss=SparseCategoricalCrossentropy(), metrics=["accuracy"]
-    )
+        model.summary(show_trainable=True)
+        optimizer = Adam(learning_rate=LEARNING_RATE)
+        model.compile(
+            optimizer=optimizer,
+            loss=SparseCategoricalCrossentropy(),
+            metrics=["accuracy"],
+        )
     early_stopping = EarlyStopping(
         monitor="val_loss",
         mode="min",
