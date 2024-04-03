@@ -29,7 +29,10 @@ def main():
     Stage this for transfer learning since we have an extremely small dataset for now
     """
     pc = ProjectConfig()
-    training_dir_path = Path("/data/sampled_training_data")
+    training_dir_path = Path("/data/sampled_training_data_200")
+    if not training_dir_path.exists():
+        print("No Data")
+        exit(1)
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 32
@@ -113,17 +116,21 @@ def main():
         # x = Dropout(0.2)(x)
         # x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(x)
 
-        x = Dense(512, activation="swish", kernel_initializer=initializers.HeNormal())(x)
+        x = Dense(1024, activation="swish", kernel_initializer=initializers.HeNormal())(
+            x
+        )
         x = BatchNormalization()(x)
-        x = Dropout(0.3)(x)
+        x = Dropout(0.5)(x)
 
-        x = Dense(256, activation="swish", kernel_initializer=initializers.HeNormal())(x)
+        x = Dense(512, activation="swish", kernel_initializer=initializers.HeNormal())(
+            x
+        )
         x = BatchNormalization()(x)
-        x = Dropout(0.3)(x)
+        x = Dropout(0.5)(x)
 
-        x = Dense(128, activation="swish", kernel_initializer=initializers.HeNormal())(x)
-        x = BatchNormalization()(x)
-        x = Dropout(0.4)(x)
+        # x = Dense(128, activation="swish", kernel_initializer=initializers.HeNormal())(x)
+        # x = BatchNormalization()(x)
+        # x = Dropout(0.4)(x)
 
         # x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
         # x = BatchNormalization()(x)

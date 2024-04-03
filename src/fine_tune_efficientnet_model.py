@@ -29,7 +29,7 @@ def main():
     Stage this for transfer learning since we have an extremely small dataset for now
     """
     pc = ProjectConfig()
-    training_dir_path = Path("/data/sampled_training_data")
+    training_dir_path = Path("/data/sampled_training_data_200")
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 32
