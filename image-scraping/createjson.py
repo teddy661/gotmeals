@@ -136,28 +136,28 @@ data = [
     # },
     #
     #    Abover are done.. Below are remaining
-    {"ClassId": "green_onion", "SearchStrings": ["green onions", "raw green onions"]},
-    {"ClassId": "celery", "SearchStrings": ["fresh celery", "fresh celery hearts", "raw celery"]},
-    {
-        "ClassId": "ground beef",
-        "SearchStrings": ["ground beef in package", "ground beef in package grocery"],
-    },
-    {"ClassId": "mushroom", "SearchStrings": ["button mushrooms in container"]},
-    {"ClassId": "bacon", "SearchStrings": ["bacon in package"]},
-    {"ClassId": "lime", "SearchStrings": ["fresh limes"]},
-    {"ClassId": "red onion", "SearchStrings": ["fresh red onions"]},
-    {"ClassId": "pecans", "SearchStrings": ["pecans in packaging", "bag of pecans"]},
-    {"ClassId": "shrimp", "SearchStrings": ["shrimp in package", "bag of shrimp"]},
-    {"ClassId": "shallot", "SearchStrings": ["fresh shallot"]},
-    {"ClassId": "orange juice", "SearchStrings": ["orange juice in container"]},
-    {"ClassId": "broccoli", "SearchStrings": ["bunch of broccoli"]},
-    {"ClassId": "walnuts", "SearchStrings": ["bag of walnuts", "package of walnuts"]},
-    {"ClassId": "raisins", "SearchStrings": ["bag of raisins"]},
-    {"ClassId": "tortilla", "SearchStrings": ["package of tortillas"]},
-    {
-        "ClassId": "green beans",
-        "SearchStrings": ["package of green beans", "fresh green beans"],
-    },
+    # {"ClassId": "green_onion", "SearchStrings": ["green onions", "raw green onions"]},
+    # {"ClassId": "celery", "SearchStrings": ["fresh celery", "fresh celery hearts", "raw celery"]},
+    # {
+    # "ClassId": "ground beef",
+    # "SearchStrings": ["ground beef in package", "ground beef in package grocery"],
+    # },
+    # {"ClassId": "mushroom", "SearchStrings": ["button mushrooms in container"]},
+    # {"ClassId": "bacon", "SearchStrings": ["bacon in package"]},
+    # {"ClassId": "lime", "SearchStrings": ["fresh limes"]},
+    # {"ClassId": "red onion", "SearchStrings": ["fresh red onions"]},
+    # {"ClassId": "pecans", "SearchStrings": ["pecans in packaging", "bag of pecans"]},
+    # {"ClassId": "shrimp", "SearchStrings": ["shrimp in package", "bag of shrimp"]},
+    # {"ClassId": "shallot", "SearchStrings": ["fresh shallot"]},
+    # {"ClassId": "orange juice", "SearchStrings": ["orange juice in container"]},
+    # {"ClassId": "broccoli", "SearchStrings": ["bunch of broccoli"]},
+    # {"ClassId": "walnuts", "SearchStrings": ["bag of walnuts", "package of walnuts"]},
+    # {"ClassId": "raisins", "SearchStrings": ["bag of raisins"]},
+    # {"ClassId": "tortilla", "SearchStrings": ["package of tortillas"]},
+    # {
+    # "ClassId": "green beans",
+    # "SearchStrings": ["package of green beans", "fresh green beans"],
+    # },
     #    { "ClassId": "onion", "SearchStrings": ["onion", "onions", "raw onions"]},
     #    { "ClassId": "garlic", "SearchStrings": ["garlic", "garlic cloves", "raw garlic"]},
     #    { "ClassId": "tomato", "SearchStrings": ["tomato", "tomatoes", "raw tomatoes"]},
@@ -173,6 +173,15 @@ data = [
     #   { "ClassId": "mushroom", "SearchStrings": ["mushroom", "mushrooms", "raw mushrooms"]},
     #   { "ClassId": "green_beans", "SearchStrings": ["green beans", "green beans", "raw green beans"]},
     #    { "ClassId": "green_peas", "SearchStrings": ["green peas", "green peas", "raw green peas"]},
+    {
+        "ClassId": "chicken",
+        "SearchStrings": [
+            "raw chicken breast",
+            "raw chicken thighs",
+            "raw chicken wings",
+            "raw_chicken_legs",
+        ],
+    },
 ]
 
 json_data = json.dumps(data, indent=2)

@@ -20,21 +20,27 @@ from utils import *
 
 
 def download_images(url_list: list, class_dir: Path) -> list:
-    user_agent = {'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'}
+    user_agent = {
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    }
     http = urllib3.PoolManager(8, headers=user_agent)
     if not class_dir.exists():
         class_dir.mkdir(parents=True)
 
     image_paths = []
     for i, url in enumerate(url_list, 1):
+        print(f"Original URL:\t{url}")
+        url = url.split("&s")[0]
         if not validators.url(url):
             image_path = None
+            print(f"Invalid URL {url}")
         else:
             time.sleep(random.uniform(0.01, 0.5))
             response = http.request("GET", url)
             if response.status != 200:
                 print(f"Failed to download image {i} from {url}")
             else:
+                print(f"Downloaded image {i} from {url}")
                 image_data = response.data
                 image_hash = blake3(image_data).hexdigest()
                 image_path = class_dir.joinpath(f"{image_hash}.jpg")
@@ -68,7 +74,9 @@ def main():
         search_strings = c["SearchStrings"]
         print(f"Processing class     :\t{class_id}")
         driver = webdriver.Chrome(
-            service=ChromeService(ChromeDriverManager().install(), options=chrome_options)
+            service=ChromeService(
+                ChromeDriverManager().install(), options=chrome_options
+            )
         )
         for search_string in search_strings:
             print(f"\tSearch String:\t{search_string}")
@@ -108,10 +116,11 @@ def main():
 
             # Find the images.
             # imgResults = driver.find_elements(By.XPATH, "//img[contains(@class,'Q4LuWd')]")
-            image_links = driver.find_elements(By.CLASS_NAME, "rg_i.Q4LuWd")
+            image_links = driver.find_elements(By.CLASS_NAME, "YQ4gaf")
 
             # Access and store the scr list of image url's.
             src_links = [img.get_attribute("src") for img in image_links]
+            src_links = [x for x in src_links if "faviconV2" not in x]
             data_src_links = [img.get_attribute("data-src") for img in image_links]
 
             # combine and clean the links
@@ -145,7 +154,6 @@ def main():
             )
             query_results.append(search_results_df)
         driver.close()
-            
 
     all_results = pl.concat(query_results)
     num_cpus = psutil.cpu_count(logical=False)
