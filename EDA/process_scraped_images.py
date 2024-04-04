@@ -21,6 +21,14 @@ pc = ProjectConfig()
 
 CLASSIFICATION_ROOT_1 = pc.data_root_dir.joinpath("image_downloads_20240302-132212")
 CLASSIFICATION_ROOT_2 = pc.data_root_dir.joinpath("image_downloads_20240303-091315")
+CLASSIFICATION_ROOT_3 = pc.data_root_dir.joinpath("image_downloads_20240404-071346")
+CLASSIFICATION_ROOT_4 = pc.data_root_dir.joinpath("image_downloads_20240404-065617")
+CLASSIFICATION_ROOTS = [
+    CLASSIFICATION_ROOT_1,
+    CLASSIFICATION_ROOT_2,
+    CLASSIFICATION_ROOT_3,
+    CLASSIFICATION_ROOT_4,
+]
 
 
 def main():
@@ -50,7 +58,7 @@ def main():
         num_cpus = 8
 
     data_frame_list = []
-    for class_root in [CLASSIFICATION_ROOT_1, CLASSIFICATION_ROOT_2]:
+    for class_root in CLASSIFICATION_ROOTS:
         if not class_root.exists():
             logging.error(f"Directory {class_root} does not exist.")
             continue
