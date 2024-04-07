@@ -12,9 +12,6 @@ PORT = 443
 
 #streamlit run app.py
 
-st.set_page_config(page_title="Got Meals?",
-                   page_icon="🍔")
-
 def send_image_to_api(image_path, api_endpoint):
     if not os.path.exists(image_path):
         return {"error": "Image file does not exist."}
@@ -27,12 +24,41 @@ def main():
     # Check if 'tab' is in the URL query parameters
     if "tab" not in st.query_params:
         # Landing page
+        st.markdown(
+            """
+            <style>
+                body {
+                    background-image: url('https://source.unsplash.com/featured/?food');
+                    background-size: cover;
+                }
+                .stApp {
+                    color: black;
+                }
+                .stButton>button {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 15px 32px;
+                    text-align: center;
+                    display: inline-block;
+                    font-size: 16px;
+                    margin: 4px 2px;
+                    cursor: pointer;
+                    border-radius: 10px;
+                }
+            </style>
+            """
+        , unsafe_allow_html=True)
+        
+        # Landing page content
         st.title("Welcome to Got Meals! 🍔📷")
-        st.write("Our mission is unwavering – to remove the hassle from your daily culinary journey and bring joy back to your kitchen. With a simple photo, we unlock the potential of your ingredients and deliver a personalized list of recipes tailored to your preferences.")
+        st.write("Our mission is unwavering – to remove the hassle from your daily culinary journey and bring joy back to your kitchen.")
+        st.write("With a simple photo, we unlock the potential of your ingredients and deliver a personalized list of recipes tailored to your preferences.")
         st.write("Click the button below to get started:")
+        
+        # Button to navigate to Got Meals app
         if st.button("Go to Got Meals App"):
-            # Set 'tab' in URL query parameters to 'got_meals' when the button is clicked
             st.write('<meta http-equiv="refresh" content="0; URL=\'?tab=got_meals\'" />', unsafe_allow_html=True)
+            
     else:
         # Got Meals application
         st.title("Got Meals?🍔📷")
@@ -113,13 +139,11 @@ def main():
                                 st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
                                 st.write(f"Recipe Directions: {hit['_source']['directions']}")
                     else:
-                        st.write("")  # Leave the output blank if no recipes are found
+                        st.write("No recipes found. Please, Try Again!")  # Leave the output blank if no recipes are found
                 else:
                     st.write("No images uploaded. Please upload at least one image.")  # Inform user if no images are uploaded
         else:
             st.write("No images uploaded. Please upload at least one image.")  # Inform user if no images are uploaded
-                    
-                    
-        
+                               
 if __name__ == "__main__":
     main()
