@@ -128,16 +128,20 @@ def main():
                     # Perform Elasticsearch query for recipes based on all ingredient names
                     recipes = search_recipes(es, ingredient_names_prioritized)
                     if recipes['hits']['hits']:
-                        for hit in recipes['hits']['hits']:
+                        for index, hit in enumerate(recipes['hits']['hits'], start=1):
                             # Check if the recipe contains the selected allergy
                             if option != 'None' and option.lower().replace(' ', '_') not in hit['_source']['ingredients'].lower():
+                                st.write(f"--- Recipe {index} ---")
                                 st.write(f"Recipe Title: {hit['_source']['title']}")
                                 st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
                                 st.write(f"Recipe Directions: {hit['_source']['directions']}")
+                                st.write("----------------------------")
                             elif option == 'None':
+                                st.write(f"--- Recipe {index} ---")
                                 st.write(f"Recipe Title: {hit['_source']['title']}")
                                 st.write(f"Recipe Ingredients: {hit['_source']['ingredients']}")
                                 st.write(f"Recipe Directions: {hit['_source']['directions']}")
+                                st.write("----------------------------")
                     else:
                         st.write("No recipes found. Please, Try Again!")  # Leave the output blank if no recipes are found
                 else:
