@@ -1,6 +1,7 @@
 import os
 import pickle
 import platform
+from datetime import datetime
 from pathlib import Path
 
 import joblib
@@ -27,6 +28,7 @@ def main():
     """
     Template to train multiple models on the same dataset evaluate performance
     """
+    start_time = datetime.now()
     pc = ProjectConfig()
     training_dir_path = Path("/data/fc/train")
     validation_dir_path = Path("/data/fc/valid")
@@ -163,6 +165,8 @@ def main():
         overwrite=True,
         include_optimizer=True,
     )
+    end_time = datetime.now()
+    print(f"Training time for {MODEL_NAME}: {end_time - start_time}")
 
 
 if __name__ == "__main__":

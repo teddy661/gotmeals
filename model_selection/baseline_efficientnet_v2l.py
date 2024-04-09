@@ -1,16 +1,14 @@
 import os
 import pickle
 import platform
+from datetime import datetime
 from pathlib import Path
 
 import joblib
 import keras
 import numpy as np
 import tensorflow as tf
-from keras.applications.efficientnet_v2 import (
-    EfficientNetV2L,
-    preprocess_input,
-)
+from keras.applications.efficientnet_v2 import EfficientNetV2L, preprocess_input
 from tensorflow.keras import initializers
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
@@ -27,6 +25,7 @@ def main():
     """
     Template to train multiple models on the same dataset evaluate performance
     """
+    start_time = datetime.now()
     pc = ProjectConfig()
     training_dir_path = Path("/data/fc/train")
     validation_dir_path = Path("/data/fc/valid")
@@ -105,7 +104,7 @@ def main():
     )
 
     with mirrored_strategy.scope():
-        base_model = EfficientNetV2M(
+        base_model = EfficientNetV2L(
             weights="imagenet", include_top=False, input_shape=(224, 224, 3)
         )
         base_model.trainable = False
@@ -163,6 +162,8 @@ def main():
         overwrite=True,
         include_optimizer=True,
     )
+    end_time = datetime.now()
+    print(f"Training time for {MODEL_NAME}: {end_time - start_time}")
 
 
 if __name__ == "__main__":
