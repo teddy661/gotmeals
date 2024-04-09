@@ -7,8 +7,8 @@ import joblib
 import keras
 import numpy as np
 import tensorflow as tf
-from keras.applications.EfficientNetB7 import (
-    EfficientNetB7,
+from keras.applications.efficientnet import (
+    EfficientNetB7 ,
     preprocess_input,
 )
 from tensorflow.keras import initializers

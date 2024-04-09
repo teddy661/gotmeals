@@ -35,7 +35,7 @@ def main():
     BATCH_SIZE = 32
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
     MODEL_DIR = Path("./model_saves_fc").resolve()
-    MODEL_NAME = "efficientnet_v2m"
+    MODEL_NAME = "EfficientNetV2M"
 
     gpus = tf.config.list_physical_devices("GPU")
     text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
