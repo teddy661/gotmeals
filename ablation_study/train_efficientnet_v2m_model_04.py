@@ -115,8 +115,15 @@ def main():
         x = tf.keras.layers.GlobalAveragePooling2D()(x)
 
         ## Begin Custom Top
+        x = Dense(1024, activation="relu", kernel_initializer=initializers.HeNormal())(
+            x
+        )
+        x = BatchNormalization()(x)
+        x = Dropout(0.5)(x)
+
         x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
         x = BatchNormalization()(x)
+        x = Dropout(0.5)(x)
         ## End Custom Top
 
         predictions = Dense(NUM_CLASSES, activation="softmax")(x)

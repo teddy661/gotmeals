@@ -117,6 +117,19 @@ def main():
         ## Begin Custom Top
         x = Dense(512, activation="relu", kernel_initializer=initializers.HeNormal())(x)
         x = BatchNormalization()(x)
+        x = Dropout(0.3)(x)
+
+        x = Dense(256, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.3)(x)
+
+        x = Dense(128, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.4)(x)
+
+        x = Dense(64, activation="relu", kernel_initializer=initializers.HeNormal())(x)
+        x = BatchNormalization()(x)
+        x = Dropout(0.5)(x)
         ## End Custom Top
 
         predictions = Dense(NUM_CLASSES, activation="softmax")(x)
