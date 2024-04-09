@@ -38,6 +38,7 @@ def main():
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
     MODEL_DIR = Path("./model_saves_fc").resolve()
     MODEL_NAME = "EfficientNetV2M"
+    TIME_FILE_NAME = MODEL_NAME + "_TRAINING_TIME"
 
     gpus = tf.config.list_physical_devices("GPU")
     text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
@@ -166,7 +167,14 @@ def main():
         include_optimizer=True,
     )
     end_time = datetime.now()
-    print(f"Training time for {MODEL_NAME}: {end_time - start_time}")
+    total_training_time = end_time - start_time
+    joblib.dump(
+        total_training_time,
+        f"{MODEL_DIR}/{TIME_FILE_NAME}.lzma",
+        compress=3,
+        protocol=pickle.HIGHEST_PROTOCOL,
+    )
+    print(f"Training time for {MODEL_NAME}: {total_training_time}")
 
 
 if __name__ == "__main__":
