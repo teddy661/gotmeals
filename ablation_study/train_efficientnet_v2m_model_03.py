@@ -34,7 +34,7 @@ def main():
     BATCH_SIZE = 32
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
     MODEL_DIR = Path("./model_saves_fc").resolve()
-    MODEL_NAME = "EfficientNetV2M"
+    MODEL_NAME = "EfficientNetV2M_THREE_LAYER"
     TIME_FILE_NAME = MODEL_NAME + "_TRAINING_TIME"
 
     gpus = tf.config.list_physical_devices("GPU")
