@@ -8,7 +8,7 @@ import joblib
 import keras
 import numpy as np
 import tensorflow as tf
-from keras.applications.VGG19 import (
+from keras.applications.vgg19 import (
     VGG19,
     preprocess_input,
 )
