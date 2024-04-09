@@ -7,8 +7,8 @@ import joblib
 import keras
 import numpy as np
 import tensorflow as tf
-from keras.applications.VGG19 import (
-    VGG19,
+from keras.applications.EfficientNetB7 import (
+    EfficientNetB7,
     preprocess_input,
 )
 from tensorflow.keras import initializers
@@ -35,7 +35,7 @@ def main():
     BATCH_SIZE = 32
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
     MODEL_DIR = Path("./model_saves_fc").resolve()
-    MODEL_NAME = "VGG19"
+    MODEL_NAME = "EfficientNetB7"
 
     gpus = tf.config.list_physical_devices("GPU")
     text_gpu_list = [x.name.replace("/physical_device:", "") for x in gpus]
@@ -105,7 +105,7 @@ def main():
     )
 
     with mirrored_strategy.scope():
-        base_model = VGG19(
+        base_model = EfficientNetB7(
             weights="imagenet", include_top=False, input_shape=(224, 224, 3)
         )
         base_model.trainable = False
