@@ -2,6 +2,7 @@ import os
 import pickle
 import platform
 from pathlib import Path
+from datetime import datetime
 
 import joblib
 import keras
@@ -27,6 +28,7 @@ def main():
     """
     Stage this for transfer learning since we have an extremely small dataset for now
     """
+    start_time = datetime.now()
     pc = ProjectConfig()
     training_dir_path = Path("/data/fc/train")
     validation_dir_path = Path("/data/fc/valid")
