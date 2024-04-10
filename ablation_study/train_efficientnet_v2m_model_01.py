@@ -27,13 +27,15 @@ def main():
     """
     start_time = datetime.now()
     pc = ProjectConfig()
-    training_dir_path = Path("/data/fc/train")
-    validation_dir_path = Path("/data/fc/valid")
+    training_dir_path = Path("/data/sampled_training_data_200")
+    if not training_dir_path.exists():
+        print("No Data")
+        exit(1)
     NUM_CLASSES = 0
     NUM_EPOCHS = 1000
     BATCH_SIZE = 32
     LEARNING_RATE = 0.0001  # Default is 0.001 #0.00001 1e-5; 0.0001 1e-4
-    MODEL_DIR = Path("./model_saves_fc").resolve()
+    MODEL_DIR = Path("./model_saves_ab").resolve()
     MODEL_NAME = "EfficientNetV2M_SINGLE_LAYER"
     TIME_FILE_NAME = MODEL_NAME + "_TRAINING_TIME"
 
@@ -73,6 +75,7 @@ def main():
     validation_datagen = ImageDataGenerator(
         preprocessing_function=preprocess_input,
         # No augmentation, only preprocessing
+        validation_split=validation_split,  # Needs to match train_datagen's validation_split
     )
 
     train_generator = train_datagen.flow_from_directory(
@@ -80,18 +83,17 @@ def main():
         target_size=(224, 224),
         batch_size=BATCH_SIZE,
         class_mode="sparse",
+        subset="training",
         shuffle=True,
         seed=flow_from_directory_seed,
     )
 
-    if validation_dir_path.exists() is False:
-        print("No validation dir")
-        exit(1)
     validation_generator = validation_datagen.flow_from_directory(
-        validation_dir_path,
+        training_dir_path,
         target_size=(224, 224),
         batch_size=BATCH_SIZE,
         class_mode="sparse",
+        subset="validation",
         shuffle=True,
         seed=flow_from_directory_seed,
     )
