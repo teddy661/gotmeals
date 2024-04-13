@@ -14,7 +14,7 @@ RUN . /app/venv/bin/activate && \
         pip3 install --no-cache-dir --upgrade pip && \
         pip3 install --no-cache-dir --upgrade setuptools wheel && \
         pip3 install --no-cache-dir \
-                streamlit==1.32.2 \
+                streamlit==1.33.0 \
                 elasticsearch==8.12.1 \
                 "aiohttp[speedups]" \
                 blake3 \
@@ -27,6 +27,8 @@ RUN . /app/venv/bin/activate && \
                 "polars[pandas, numpy, pyarrow, fsspec, connectorx, xlsx2csv, deltalake, timezone]" \
                 opencv-contrib-python-headless \
                 numpy \
+                click \ 
+                spacy \
                 scikit-image && \ 
                 find ./ \
                     \( \
@@ -59,6 +61,7 @@ ENV LD_LIBRARY_PATH=/opt/python/py311/lib:${LD_LIBRARY_PATH}
 ENV PATH=/opt/python/py311/bin:${PATH}
 COPY --from=assembled /app/venv /app/venv/
 ENV PATH /app/venv/bin:$PATH
+RUN python -m spacy download en_core_web_sm
 WORKDIR /app
 COPY . ./
 ENV TERM=xterm-256color
