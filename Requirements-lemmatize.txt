@@ -1,0 +1,8 @@
+pip install spacy
+pip install numpy==1.21
+pip install --upgrade click
+python -m spacy download en_core_web_sm
+
+import spacy
+
+nlp = spacy.load("en_core_web_sm")
