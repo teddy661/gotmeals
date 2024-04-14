@@ -7,19 +7,65 @@ es = Elasticsearch(
 )
 
 
-def search_recipes(es, ingredients):
+def search_recipes(
+    es, lemmatized_ingredient_1, lemmatized_ingredient_2, lemmatized_ingredients
+):
     # Construct the Elasticsearch query to search for recipes based on the provided ingredient names
+    # query = {
+    #     "query": {
+    #         "bool": {
+    #             "must": [{"match": {"ingredients": ingredient}} for ingredient in ingredients]
+    #         }
+    #     }
+    # }
+
+    # 1. Add in the boost_factors
+    # 2. Lemmatize the ingredients --> SEE APP-GOTMEALS.PY
+
+    # *NEW*
+    boost_factors = {lemmatized_ingredient_1: 3, lemmatized_ingredient_2: 2}
+
+    # *NEW*
     query = {
         "query": {
             "bool": {
                 "must": [
-                    {"match": {"ingredients": ingredient}} for ingredient in ingredients
-                ]
+                    {
+                        "match": {
+                            "cleaned_NER": {
+                                "query": lemmatized_ingredient_1,
+                                "boost": boost_factors.get(lemmatized_ingredient_1, 1),
+                            }
+                        }
+                    },
+                    {
+                        "match": {
+                            "cleaned_NER": {
+                                "query": lemmatized_ingredient_2,
+                                "boost": boost_factors.get(lemmatized_ingredient_2, 1),
+                            }
+                        }
+                    },  # New must clause for ingredient2
+                ],
+                "should": [
+                    {
+                        "match": {
+                            "cleaned_NER": {
+                                "query": ingredient,
+                                "boost": boost_factors.get(ingredient, 1),
+                            }
+                        }
+                    }
+                    for ingredient in lemmatized_ingredients
+                    if ingredient is not None
+                ],
+                "minimum_should_match": 1,
             }
         }
     }
+
     # Execute the search query
-    response = es.search(index="recipes", body=query, size=5)
+    response = es.search(index="recipes", body=query, size=10)
     return response
 
 
