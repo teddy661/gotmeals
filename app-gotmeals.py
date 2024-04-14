@@ -5,6 +5,8 @@ import os
 import json
 from pathlib import Path
 from elasticsearch_main import search_recipes, es
+import spacy
+nlp = spacy.load("en_core_web_sm")
 
 PROTOCOL = "https"
 HOST = "edbrown.mids255.com"
@@ -119,14 +121,43 @@ def main():
             if submit_button:
                 # Ensure that the first ingredient takes priority in the recipe
                 if ingredient_names:
-                    first_ingredient = ingredient_names[0]
-                    nice_to_have_ingredients = ingredient_names[1:]
+                    #Ingredients are saved in ingredient_names 
+                    #Need to get to: lemmatized_ingredient_1, lemmatized_ingredient_2, lemmatized_ingredients
+                    ingredient1 = ingredient_names[0]
+                    doc = nlp(ingredient1)
+                    lemmatized_ingredient_1 = " ".join([token.lemma_ for token in doc])
+
+                    ingredient2 = ingredient_names[1]
+                    doc = nlp(ingredient2)
+                    lemmatized_ingredient_2 = " ".join([token.lemma_ for token in doc])
+
+                    ingredient3 = ingredient_names[2]
+                    ingredient4 = ingredient_names[3]
+                    ingredient5 = ingredient_names[4]
+
+                    lemmatized_ingredients = []
+                    for ingredient in [ingredient3, ingredient4, ingredient5]:
+                         if ingredient:
+                              doc = nlp(ingredient)
+                              lemmatized_ingredient = " ".join([token.lemma_ for token in doc])
+                              lemmatized_ingredients.append(lemmatized_ingredient)
+
+                    #Lemmatize ALLERGY
+                    if option != 'None':
+                        doc = nlp(option)
+                        option = " ".join([token.lemma_ for token in doc])
+
+
+                    # first_ingredient = ingredient_names[0] --> OLD CODE NOT USED
+                    # nice_to_have_ingredients = ingredient_names[1:] --> OLD CODE NOT USED
                     
                     # Construct the list of ingredient names prioritized based on the order of image uploads
-                    ingredient_names_prioritized = [first_ingredient] + [ingredient for ingredient in nice_to_have_ingredients if ingredient != first_ingredient]
+                    # ingredient_names_prioritized = [first_ingredient] + [ingredient for ingredient in nice_to_have_ingredients if ingredient != first_ingredient] --> OLD CODE NOT USED
                     
                     # Perform Elasticsearch query for recipes based on all ingredient names
-                    recipes = search_recipes(es, ingredient_names_prioritized)
+
+                    ##UPDATE SEARCH_RECIPES WITH THE CORRECT INPUTS NEEDED
+                    recipes = search_recipes(es, lemmatized_ingredient_1, lemmatized_ingredient_2, lemmatized_ingredients)
                     if recipes['hits']['hits']:
                         for index, hit in enumerate(recipes['hits']['hits'], start=1):
                             # Check if the recipe contains the selected allergy
