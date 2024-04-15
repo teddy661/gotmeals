@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch
 #USING THIS FOR FRONT END PART
 # Initialize the Elasticsearch client
-es = Elasticsearch(['https://edbrown.mids255.com/'], basic_auth=('elastic', 'jFoEj4A&5dnrCrQm'))
+es = Elasticsearch(['https://edbrown.mids255.com/'], basic_auth=('elastic', 'jFoEj4A4444rCrQm'))
 
 
 def search_recipes(es, lemmatized_ingredient_1, lemmatized_ingredient_2, lemmatized_ingredients):

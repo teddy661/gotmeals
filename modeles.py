@@ -18,7 +18,7 @@ from elasticsearch.helpers import bulk
 import pandas as pd
 from pathlib import Path 
 
-es = Elasticsearch(['https://edbrown.mids255.com/'], basic_auth=('elastic', 'jFoEj4A&5dnrCrQm'))
+es = Elasticsearch(['https://edbrown.mids255.com/'], basic_auth=('elastic', 'jFoEj4A4444rCrQm'))
 
 #Load the data
 #UPDATE THE PATH FOR WHERE YOU ARE STORING THE RECIPE CSV
