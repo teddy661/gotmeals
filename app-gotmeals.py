@@ -67,7 +67,7 @@ def main():
         st.header("Identify recipes based on the foods you have!")
         st.write("Add your food images below and select any allergies to generate a list of relevant recipes")
         
-        uploaded_images = st.file_uploader(label="Upload a maximum of 5 items and a minimum of 1 item. Order the images you upload with the first image being the most important.",
+        uploaded_images = st.file_uploader(label="Upload a maximum of 5 items and a minimum of 2 items. Order the images you upload with the first image being the most important.",
                             type=["jpg", "jpeg", "png", "heic"], accept_multiple_files=True)
         
         option = st.selectbox(
@@ -123,24 +123,33 @@ def main():
                 if ingredient_names:
                     #Ingredients are saved in ingredient_names 
                     #Need to get to: lemmatized_ingredient_1, lemmatized_ingredient_2, lemmatized_ingredients
-                    ingredient1 = ingredient_names[0]
-                    doc = nlp(ingredient1)
-                    lemmatized_ingredient_1 = " ".join([token.lemma_ for token in doc])
+                    # ingredient1 = ingredient_names[0]
+                    # doc = nlp(ingredient1)
+                    # lemmatized_ingredient_1 = " ".join([token.lemma_ for token in doc])
 
-                    ingredient2 = ingredient_names[1]
-                    doc = nlp(ingredient2)
-                    lemmatized_ingredient_2 = " ".join([token.lemma_ for token in doc])
+                    # ingredient2 = ingredient_names[1]
+                    # doc = nlp(ingredient2)
+                    # lemmatized_ingredient_2 = " ".join([token.lemma_ for token in doc])
 
-                    ingredient3 = ingredient_names[2]
-                    ingredient4 = ingredient_names[3]
-                    ingredient5 = ingredient_names[4]
+                    # ingredient3 = ingredient_names[2]
+                    # ingredient4 = ingredient_names[3]
+                    # ingredient5 = ingredient_names[4]
 
-                    lemmatized_ingredients = []
-                    for ingredient in [ingredient3, ingredient4, ingredient5]:
-                         if ingredient:
-                              doc = nlp(ingredient)
-                              lemmatized_ingredient = " ".join([token.lemma_ for token in doc])
-                              lemmatized_ingredients.append(lemmatized_ingredient)
+                    lemmatized_ingredients_temp = []
+                    for ingredient in ingredient_names:
+                        doc = nlp(ingredient)
+                        lemmatized_ingredient = " ".join([token.lemma_ for token in doc])
+                        lemmatized_ingredients_temp.append(lemmatized_ingredient)
+
+                    lemmatized_ingredient_1 = lemmatized_ingredients_temp[0]
+                    lemmatized_ingredient_2 = lemmatized_ingredients_temp[1]
+
+
+                    if len(lemmatized_ingredients_temp) > 2:
+                         lemmatized_ingredients = lemmatized_ingredients_temp[2:]
+                    else:
+                         lemmatized_ingredients = [None]
+    
 
                     #Lemmatize ALLERGY
                     if option != 'None':
