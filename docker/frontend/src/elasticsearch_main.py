@@ -65,11 +65,7 @@ def search_recipes(
     }
 
     # Execute the search query
-    response = es.search(index="recipes", body=query, size=10)
-
-    if not response["hits"]["hits"]:
-        query["query"]["bool"].pop("minimum_should_match", None)
-        response = es.search(index="recipes", body=query, size=10)
+    response = es.search(index="recipes", body=query)
 
     return response
 
